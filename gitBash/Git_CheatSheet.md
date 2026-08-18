@@ -62,7 +62,8 @@ git clone https://github.com/Sudikinoko/CheatSheet.git
 
 **In einen Branch wechseln** (Branch = Abzweigung)
 ```
-git checkout [Commit-Hash oder Branch-Name einfügen]
+git checkout [Commit-Hash oder Branch-Name einfügen] (veraltet)
+git switch [Commit-Hash oder Branch-Name einfügen]
 ```
 
 Beispiel:
