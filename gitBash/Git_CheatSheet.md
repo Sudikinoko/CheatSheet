@@ -10,9 +10,17 @@ cd /c/Users/Denis/Workspaces/Pong
 git status
 ```
 
+**Status Online abfragen**
+```
+git fetch
+```
+
 **Alle Dateien hinzufügen**
 ```
 git add *
+```
+oder
+```
 git add .
 ```
 
