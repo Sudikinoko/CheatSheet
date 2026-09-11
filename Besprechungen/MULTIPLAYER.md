@@ -5,7 +5,11 @@ Jedes Mal, wenn an der Mechanik etwas Neues gebaut wird, kommt hier ein Eintrag 
 *Was ist neu, und was bedeutet es für Multiplayer?* So wächst die Liste mit dem Projekt
 mit, statt am Ende rekonstruiert werden zu müssen.
 
-- **Projekt:** `C:\Users\Denis\Documents\Unreal Projects\NPCs`, Unreal Engine 5.8
+> **Schwesterdatei:** `OFFENE_PUNKTE.md` — dort steht alles, was **nicht** Netzwerk ist
+> (offene Design-Entscheidungen, Querverbindungen zwischen Mechaniken, fehlende
+> Fundamente wie Speichern und Optionsmenü). Diese Datei hier bleibt beim Netzwerk.
+
+- **Projekt:** `C:\Users\Denis\Workspaces\Unreal\NPCs`, Unreal Engine 5.8
 - **Level:** `/Game/Wiese/Lvl_Wiese`
 - **Code:** `Source\NPCs\Crafting\`
 - **Letzte Aktualisierung:** 2026-09-11
@@ -118,6 +122,46 @@ Drei Fragen pro neuem Feature:
 ## 6. Laufende Liste — neue Punkte
 
 *(Neueste oben. Format: Datum — Feature — Auswirkung)*
+
+### 2026-09-11 — Lokale Rohstoff-Anzeige + Lagerzugriff
+
+Neue `UStorageAccessComponent` am Spieler beantwortet die Frage *"habe ich gerade
+Zugriff auf das Lagernetz?"* und zeigt die Gesamtbestaende als Bildschirm-Anzeige
+(`WBP_RohstoffHud`). Modus aktuell **Immer**; vorbereitet ist **InLagerReichweite**,
+spaeter kommt dort die Basis-Zone hinein.
+
+**Auswirkung auf Multiplayer:**
+
+- Die **Anzeige selbst ist rein clientseitig** und liest nur — kein Replikationsbedarf.
+- **Aber:** sie summiert ueber alle Lager. Damit ein Client richtige Zahlen sieht,
+  muessen die **Lagerbestaende repliziert** sein → haengt an **M2**. Ohne das sieht
+  jeder Client nur seine eigene, veraltete Sicht.
+- `HasStorageAccess()` ist **pro Spieler verschieden** (haengt an der Position). Die
+  Frage sitzt deshalb am Pawn und nicht global — das ist im Multiplayer genau richtig
+  und sollte so bleiben.
+- **Wichtig fuer spaeter:** sobald der Lagerzugriff auch das *Bestellen* steuert, muss
+  die Pruefung **serverseitig wiederholt** werden — wie die Reichweitenpruefung bei
+  **M3**. Ein Client darf nicht selbst behaupten duerfen, er sei in der Basis.
+
+### 2026-09-11 — Stationsausbau
+
+Die Station laesst sich im Spiel auf die naechste Stufe ausbauen (Taste **U**).
+Die Kosten stehen als flache Tabelle `UpgradeCosts` an der Station; bezahlt wird
+aus den Lagern, nach dem Prinzip **ganz oder gar nicht** ueber mehrere Lager hinweg
+(`UMaterialStorageComponent::PayFromStorages`).
+
+**Auswirkung auf Multiplayer:**
+
+- `CurrentLevel` ist Zustand und muss **repliziert** werden → gehoert zu **M2**.
+  `UpgradeCosts` dagegen ist reine Konfiguration und aendert sich im Spiel nie —
+  die kann unrepliziert bleiben.
+- `UStationPlayerInputComponent::Upgrade()` ruft `TryUpgrade()` direkt auf →
+  braucht einen **Server-RPC**, genau wie Bestellen und Abholen → gehoert zu **M3**.
+  Wichtig: die Reichweitenpruefung muss **serverseitig wiederholt** werden, sonst
+  koennte ein Client von ueberall ausbauen.
+- `PayFromStorages` veraendert **mehrere Lager in einem Rutsch**. Das muss zwingend
+  auf dem Server laufen, sonst laufen die Bestaende der Spieler auseinander. Die
+  Zurueckbuchung bei Fehlschlag ist dort ebenfalls Server-Sache.
 
 ### 2026-09-11 — Ausgangsstand aufgenommen
 Mechanik vollständig im Einzelspieler: Bestellung (Taste B), Materialsuche im
