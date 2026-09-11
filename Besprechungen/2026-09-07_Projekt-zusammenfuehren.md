@@ -23,6 +23,10 @@ werden: klären, wie daraus *ein* Spiel wird und wie wir zusammenarbeiten.
    pinke Materialien und kaputter Input beim Zusammenführen.
 6. **Reihenfolge:** Denis macht erst die NPC-Mechanik fertig, *dann* wird
    konsolidiert — nicht vorher, nicht nebenbei.
+7. **Neue Idee "Nimm mich mit":** Guide-NPC, der beim Spielstart den aktuellen
+   Stand erklärt (Wiedereinstieg nach Pause). Hängt am Speichersystem + Spieler-
+   Identität → nicht als eigenes Projekt bauen, sondern im gemeinsamen Projekt.
+   Details in `Workspaces/Konzepte/NimmMichMit_Konzept.md`.
 
 ---
 
@@ -101,6 +105,26 @@ MeinSpiel/
 - **Externe Szenen-Referenzen** (z. B. „welcher Player") nicht als serialisiertes
   Feld, sondern per Tag-Lookup (`FindWithTag`) oder Locator/Service.
 - Namens- und Ordnerkonvention festlegen.
+
+## 7. Neue Mechanik-Idee: "Nimm mich mit"
+
+Guide-NPC, der den Spieler bei jedem Spielstart abholt und fragt, ob er den
+aktuellen Stand zeigen soll — Ziel: Hürde beim Wiedereinstieg nach längerer
+Pause wegnehmen. Erklärt gestaffelt nach Abwesenheitsdauer (kurz weg = knappe
+Erinnerung, lang weg = auch Grundmechaniken/Steuerung neu). Infos werden
+automatisch mitgeschrieben, Spieler kann eigene Ziele/Notizen ergänzen.
+
+**Für die Besprechung relevant:**
+- Die Mechanik hat zwei Schichten: **A** ein "Tagebuch" (letzter Login,
+  Fortschritt, offene Ziele) und **B** der Guide + Dialog-UI.
+- Schicht A hängt fest am **Speichersystem** und an der **Spieler-Identität** —
+  im Multiplayer pro Spieler, vermutlich serverseitig. Ein getrenntes
+  Einzelspieler-Übungsprojekt würde ein lokales Speichern voraussetzen, das
+  später nicht passt.
+- **Vorschlag:** ganze Mechanik im gemeinsamen Projekt bauen, sobald Speichern
+  und Spieler-Identität dort stehen. Höchstens Schicht B (Dialog-UI) vorab
+  separat üben, mit Testdaten.
+- Volles Konzept: `Workspaces/Konzepte/NimmMichMit_Konzept.md`
 
 ---
 
