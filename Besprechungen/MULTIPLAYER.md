@@ -123,6 +123,46 @@ Drei Fragen pro neuem Feature:
 
 *(Neueste oben. Format: Datum — Feature — Auswirkung)*
 
+### 2026-09-12 — Kamera-Roboter / Perspektivwechsel + Lean Shop
+
+Stufenloser Wechsel Ego / Third-Person / Top-Down ueber eine Ankerliste und einen
+durchlaufenden Wert `t` (Taste **K**, Mausrad, Lieblingssichten auf **1-4**).
+Gekauft wird der Roboter im **Lean Shop** (Taste **G**), bezahlt aus den Lagern.
+
+**Auswirkung auf Multiplayer:**
+
+- **Die Kamera selbst ist rein lokal** — Pose, `t`, Zustand. Kein Replikationsbedarf;
+  jeder Spieler schaut, wohin er will. Die Mesh-Sichtbarkeit wird nur fuer den
+  eigenen Spieler umgeschaltet und ist ebenfalls unkritisch.
+- **Achtung, die eine Ausnahme:** der Steuerungsmodus schaltet
+  `bUseControllerRotationYaw` und `bOrientRotationToMovement` am CharacterMovement
+  um. Das ist **kein** reiner Anzeigewert — der Server simuliert die Drehung
+  derselben Figur mit. Werden die Schalter nur auf dem Client gesetzt, laufen
+  Server- und Client-Drehung auseinander (die Figur "zappelt" fuer die anderen).
+  Beim Umbau: Schema-Wechsel als **Server-RPC** mit Replikation an alle, nicht rein
+  lokal. Das ist die einzige Stelle der Kamera-Mechanik, die das betrifft.
+- **Der Besitz ist Zustand pro Spieler.** `UUnlockComponent::OwnedFeatures` muss
+  **repliziert** werden → gehoert zu **M2**.
+- **Kaufen ist ein Spielerbefehl** → **Server-RPC**, und die **Reichweitenpruefung
+  muss serverseitig wiederholt** werden — dasselbe Muster wie Bestellen, Abholen und
+  Ausbauen → gehoert zu **M3**. Ein Client darf nicht behaupten duerfen, er stehe
+  vor dem Shop.
+- `PayFromStorages` veraendert mehrere Lager auf einmal und muss zwingend auf dem
+  **Server** laufen — derselbe Punkt wie beim Stationsausbau.
+- **Lieblingssichten und Hinweis-Zaehler sind persoenliche Einstellungen** — pro
+  Spieler, rein lokal, kein Replikationsbedarf. Sie gehoeren aber in das spaetere
+  **Speichern pro Spieler**, nicht in den Weltzustand.
+- **Die Tasten binden sich nur einmal, in `BeginPlay`, und nur wenn dann schon ein
+  `PlayerController` da ist.** Im Einzelspieler ist er das immer — das Muster laeuft
+  seit dem Stationsausbau fehlerfrei. **Auf einem Client kann der Controller aber
+  spaeter eintreffen** als `BeginPlay` der Komponente; dann bindet sie nichts mehr
+  nach, und die Mechanik ist fuer diese Runde still tot (nur eine `Verbose`-Zeile im
+  Log). Betrifft **alle drei** Platzhalter-Bedienungen gleichermassen:
+  `UStationPlayerInputComponent`, `UShopPlayerInputComponent`,
+  `UCameraRobotComponent`. Beim Umbau deshalb gemeinsam loesen — nachbinden, sobald
+  ein Controller da ist (`ReceiveControllerChangedDelegate`). Steht ohnehin an,
+  wenn das Projekt von den Platzhalter-Bindungen auf Enhanced-Input-Assets umstellt.
+
 ### 2026-09-11 — Lokale Rohstoff-Anzeige + Lagerzugriff
 
 Neue `UStorageAccessComponent` am Spieler beantwortet die Frage *"habe ich gerade
