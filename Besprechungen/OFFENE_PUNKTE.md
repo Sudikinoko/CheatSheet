@@ -11,7 +11,7 @@ Gegenstück zu `MULTIPLAYER.md`:
 Wer neu dazukommt (oder nach Wochen zurückkommt) soll hier in fünf Minuten sehen:
 *Was gibt es schon? Was fehlt noch? Was muss später zusammengeführt werden?*
 
-- **Letzte Aktualisierung:** 2026-09-11
+- **Letzte Aktualisierung:** 2026-09-12
 
 ---
 
@@ -36,7 +36,7 @@ Bewusst noch nicht entschieden. Nicht in eine Richtung vorbauen, bevor das gekl�
 | # | Frage | Wer / wann | Warum sie wartet |
 |---|---|---|---|
 | D1 | **Projektstruktur:** ein gemeinsames Projekt oder getrennte pro Mechanik? | Denis + Kumpel | Betrifft den Kumpel direkt (Multiplayer). Empfehlung der KI: **ein** Projekt, Mechaniken als Ordner, je eine Testszene, ein `_Core` für Geteiltes. |
-| D2 | **Kampf und Perspektive:** Top-Down nur zum Bauen? Kampf zieht die Sicht zurück? Oder alles in allen Perspektiven? | Denis, wenn das Kampfsystem ansteht | "Alles in allen Perspektiven" wäre das Wunschbild, braucht aber ein **zweites Kampfsystem** (Zielen zum Mauszeiger, Höhenunterschiede, andere Sichtlinien). Im Kamera-Code liegt dafür nur ein Haken bereit (`bCombatAllowed`). |
+| ~~D2~~ | ~~**Kampf und Perspektive:** Top-Down nur zum Bauen?~~ | **Entschieden 12.09.** | **Einfache Variante:** der Kampf zieht die Sicht auf Third-Person zurück, die Zeiger-Sichten bleiben fürs Bauen. `SetCombatActive()` wird vom `ARaidDirector` gerufen. Ein echtes Top-Down-Kampfsystem (Zielen zum Mauszeiger, Höhenunterschiede) kommt später als **eigenes Thema** — dann wird D2 wieder aufgemacht. |
 | D3 | **Währung:** bleibt es beim Bezahlen mit Material aus den Lagern, oder kommt eine eigene Währung? | offen | Betrifft nur die Bezahlstelle (`TryBuy`, `TryUpgrade`). Die Kostenlisten bleiben in beiden Fällen gleich. |
 | D4 | **Guide aus "Nimm mich mit":** feste Figur in der Welt oder Menü/Overlay? | offen | Siehe `Konzepte\NimmMichMit_Konzept.md`. |
 | D5 | **Multiplayer-Grundsatzfragen** (Dedicated/Listen Server, Spielerzahl, Job als UObject oder Struct) | Kumpel | Stehen ausführlich in `MULTIPLAYER.md`, Abschnitt 2. |
@@ -68,7 +68,7 @@ Dinge, auf die mehrere Mechaniken warten. Reihenfolge ist bewusst keine gesetzt.
 |---|---|---|
 | **Speichersystem** | Freischaltungen, Lieblingssichten, Hinweis-Zähler, "Nimm mich mit" (Schicht A), Spielstand allgemein | Hängt an der Spieler-Identität → hängt an D1 und am Multiplayer. Deshalb **nicht** als Einzelspieler-Lösung vorbauen. |
 | **Optionsmenü** | Gebäudeschilder ein/aus, später Tastenbelegung, Empfindlichkeiten | Gibt es noch gar nicht. |
-| **Kampfsystem** | D2, Kamera-Haken `bCombatAllowed` | Noch kein Konzept vorhanden. |
+| ~~**Kampfsystem**~~ | — | **Nicht mehr offen.** Konzept und Fundament stehen: `Unreal\NPCs\plan-rohstoff-raid-unreal.md`. Gebaut sind Lebenspunkte, Seiten und **eine** Schadensfunktion. Offen bleiben Spielerwaffe und Geschütz — beides steckt im selben Plan. |
 | **Bauen in Unreal** | Kamera-Zeigermodus, Top-Down-Übersicht | Liegt als `Bauen V1` in Unity, nicht portiert. |
 | **Netzwerk** | alles mit Zustand | Eigene Datei: `MULTIPLAYER.md`. |
 
@@ -77,6 +77,49 @@ Dinge, auf die mehrere Mechaniken warten. Reihenfolge ist bewusst keine gesetzt.
 ## 5. Laufende Liste — was wann dazukam
 
 *(Neueste oben. Format: Datum — Mechanik — was offen bleibt)*
+
+### 2026-09-12 — Rohstoffe, Kampf und Überfall (Meilenstein 1–7)
+Plan: `Unreal\NPCs\plan-rohstoff-raid-unreal.md`, Einrichtung:
+`Unreal\NPCs\Rohstoff_Raid_Einrichtung.md`. Erz abbauen erzeugt Bedrohung,
+Angreifer wollen es zurück, das Geschütz (noch nicht gebaut) verteidigt.
+
+**Das beantwortet D2** — *Kampf und Perspektive*: die **einfache Variante** ist
+gewählt (Denis, 12.09.). Der Kampf zieht die Sicht auf Third-Person zurück, die
+Zeiger-Sichten bleiben fürs Bauen. `UCameraRobotComponent::SetCombatActive()`
+hat damit einen Aufrufer — den `ARaidDirector`. Ein echtes Top-Down-Kampfsystem
+kommt später als eigenes Thema.
+
+**Das füllt außerdem das Fundament "Kampfsystem"** aus Abschnitt 4, das bisher
+mit *"noch kein Konzept vorhanden"* geführt wurde.
+
+**Offen / verbunden:**
+
+- **Freischaltungen am Pawn** — der gekaufte Kamera-Roboter geht beim Respawn
+  verloren. Es gibt eine Überbrückung, die es verdeckt. Der eigentliche Punkt
+  steht als **N-1** in `MULTIPLAYER.md` und ist dort auch die Lösung
+  (`APlayerState`). **Bitte vor dem Netzwerkbau ansehen — es ist schon jetzt
+  falsch, nicht erst später.**
+- **Wächst der Erzbrocken nach?** Heute ist er irgendwann leer. Nachwachsen,
+  mehrere Brocken oder ein wanderndes Vorkommen sind alles gute Antworten — es
+  hängt daran, wie lang eine Partie werden soll. Der Code ist darauf vorbereitet:
+  später entstehende Brocken melden sich über `AOreNode::OnAnyNodeRegistered`.
+- **Der Spieler kann sich nicht wehren.** Ausdrücklich für später gewollt. Der
+  Bau ist vorbereitet: eine Spielerwaffe ruft dieselbe `ApplyDamage` und braucht
+  am Rest nichts zu ändern.
+- **Gebäude sind nicht zerstörbar** (Meilenstein 13, optional). Billiger als
+  gedacht — der Handwerks-Code verkraftet ein verschwindendes Lager bereits.
+  Was fehlt, ist Zielwechsel-Logik beim Angreifer, nicht die Lebenspunkte.
+- **Taste E reiht sich in die Platzhalter ein** (halten = abbauen, antippen =
+  Bündel aufheben). Gehört zur gemeinsamen Umstellung auf Enhanced Input weiter
+  oben — und ist der **erste Fall, der Halten braucht**.
+- **Speichern fehlt** — betrifft jetzt auch das später gekaufte Geschütz, genau
+  wie den Kamera-Roboter.
+- **Der Bewegungs-Controller heißt noch `ANpcCraftWorkerController`**, obwohl ihn
+  inzwischen Handwerks-NPC *und* Angreifer benutzen (über `INpcMoveListener`).
+  Umbenennen ist ein eigener Schritt: es könnte Blueprint-Verweise abreißen, und
+  eine Suche in binären `.uasset` ist nicht beweisend.
+- **Balancing ist ungetestet.** Reichweiten, Schaden, Wellengröße, Abbautempo
+  stehen auf Startwerten. Das entscheidet sich beim Spielen, nicht am Plan.
 
 ### 2026-09-11 — Kamera-Roboter / Perspektivwechsel + Lean Shop
 Plan: `Unreal\NPCs\plan-kamera-roboter-unreal.md`. Perspektivwechsel Ego /

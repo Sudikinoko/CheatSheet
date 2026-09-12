@@ -12,7 +12,7 @@ mit, statt am Ende rekonstruiert werden zu müssen.
 - **Projekt:** `C:\Users\Denis\Workspaces\Unreal\NPCs`, Unreal Engine 5.8
 - **Level:** `/Game/Wiese/Lvl_Wiese`
 - **Code:** `Source\NPCs\Crafting\`
-- **Letzte Aktualisierung:** 2026-09-11
+- **Letzte Aktualisierung:** 2026-09-12
 
 ---
 
@@ -122,6 +122,50 @@ Drei Fragen pro neuem Feature:
 ## 6. Laufende Liste — neue Punkte
 
 *(Neueste oben. Format: Datum — Feature — Auswirkung)*
+
+### 2026-09-12 — Rohstoffe, Kampf und Überfall (Meilenstein 1–7)
+
+Plan: `Unreal\NPCs\plan-rohstoff-raid-unreal.md`. Neuer Kreislauf: Erz abbauen →
+Bedrohung steigt → Angreifer-Wellen → Erz heimbringen oder verlieren. Neue Ordner
+`Source\NPCs\Kampf\` und `Source\NPCs\Rohstoffe\`.
+
+> **Der wichtigste Punkt zuerst, weil er eine Architektur-Entscheidung ist und
+> nicht nur eine Leitung:** siehe N-1 unten (Freischaltungen am Pawn).
+
+**Was bewusst schon richtig gebaut ist (bitte erhalten):**
+
+- **Genau EINE Schadensfunktion**: `UHealthComponent::ApplyDamage(Menge, Verursacher)`.
+  Geschütz, Angreifer und die spätere Spielerwaffe rufen alle dieselbe. Für den
+  Umbau heißt das: **ein** `HasAuthority()` an **einer** Stelle, nicht fünf.
+- **Einer entscheidet, die anderen fragen** (wie A2): `AOreNode::TryMine()` gibt
+  zurück, wie viel *wirklich* herauskam — der Spieler rechnet nichts aus.
+  `ADroppedOre::TakeAll()` gibt seinen Inhalt genau **einmal** heraus.
+- **Dauern über Timer und Zeitstempel, nie pro Frame** (wie A3/A6): Abbautempo,
+  Denk-Takt, Schlag-Takt, Wellenabstand. `UMiningComponent::GetUnitProgress()`
+  rechnet aus dem Startzeitpunkt — dasselbe Muster wie der Craft-Fortschritt.
+- **Alle statischen Listen sind nach Welt gefiltert** (wie A5): `ActiveTargets`,
+  `ActiveNodes`, `ActiveRaiders`, `ActiveBundles`.
+- **Der Anim-Notify des Geschützes wird Effekt und Schaden trennen** — der Notify
+  läuft später auf jedem Client, der Schaden darf dort nicht entstehen.
+
+**Zu erledigen:**
+
+| # | Punkt | Was zu tun ist |
+|---|---|---|
+| **N-1** | **`UUnlockComponent` hängt am Spieler-PAWN.** | **Architektur, nicht Leitung — und schon im Einzelspieler kaputt.** Wird der Pawn beim Respawn zerstört (`ERespawnMode::NeuErstellen`), ist der gekaufte Kamera-Roboter weg: Taste K tut danach nichts mehr, ohne jede Fehlermeldung. Es gibt derzeit eine **Überbrückung** (`UPlayerRespawnComponent::CarryOverUnlocks` kopiert den Besitz auf den neuen Pawn), die genau das verdeckt. Richtig gehört Besitz pro Spieler an den **`APlayerState`** — der überlebt den Pawn-Wechsel und ist der übliche Ort für replizierten Zustand pro Spieler. **Die Überbrückung dann ersatzlos löschen.** |
+| **N-2** | Lebenspunkte sind Zustand | `UHealthComponent::Health` und `bIsDead` brauchen `Replicated` → gehört zu **M2**. Der Line Trace des Geschützes und `ApplyDamage` dürfen **nur** serverseitig zählen. |
+| **N-3** | Abbauen und Aufheben rufen direkt auf | `UMiningComponent` ruft `TryMine()` / `TakeAll()` direkt → **Server-RPC**, genau wie M3. Die Reichweitenprüfung muss **serverseitig wiederholt** werden, sonst baut ein Client von überall ab. |
+| **N-4** | Der Rucksack ist Zustand pro Spieler | `UCarriedOreComponent` (Material + Menge) muss repliziert werden. Betrifft auch die spätere Anzeige. |
+| **N-5** | Das fallengelassene Bündel ist **Welt**zustand | `ADroppedOre` muss repliziert werden. Wer es nimmt, entscheidet der **Server** — der `bTaken`-Merker schützt heute nur gegen zwei Zugriffe auf **einem** Rechner. |
+| **N-6** | Die Bedrohung ist **eine Zahl für alle** | So entschieden (Denis, 12.09.). `ARaidDirector` gehört damit ganz auf den Server: Zählen, Schwellen, Spawnen. Clients brauchen davon höchstens eine Anzeige. |
+| **N-7** | **Eine Spielregel hängt an der Spielerzahl** | `ARaiderNpc::CanFightWhileCarrying()` im Modus *Automatisch*: allein darf ein Träger kämpfen, zu mehreren nicht. Das ist so gewollt — aber es heißt, dass die Regel **auf dem Server** ausgewertet werden muss und sich **mitten in der Partie ändern kann**, wenn jemand beitritt oder geht. Der einzige Ort, der das entscheidet, ist diese eine Funktion. |
+| **N-8** | Der Überfall endet über eine Frage an alle Spieler | `AllPlayersInBase()` und `AnyPlayerCarriesOre()` gehen über alle `PlayerController`. Serverseitig unproblematisch, aber: ein Spieler **ohne Pawn** (mitten im Respawn) zählt absichtlich als *nicht* in der Basis — sonst endete der Überfall im Moment eines Todes. Bitte so lassen. |
+| **N-9** | `SetCombatActive()` läuft pro Spieler | Reine Sichtsache, darf auf dem Client passieren. Der **Beginn** des Überfalls muss die Clients aber erreichen (Multicast oder replizierter Zustand am Director). |
+
+**Offene Entscheidung, die dazugehört:** Der Respawn kennt zwei Modi
+(`ERespawnMode`). *Versetzen* legt nichts fest, *NeuErstellen* ist der übliche
+Unreal-Weg und der, den der Netzwerkbetrieb braucht. Vorbelegt ist
+**NeuErstellen**. Sobald N-1 gelöst ist, kann *Versetzen* ersatzlos weg.
 
 ### 2026-09-12 — Kamera-Roboter / Perspektivwechsel + Lean Shop
 
