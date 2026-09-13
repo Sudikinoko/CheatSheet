@@ -29,6 +29,44 @@ Drei Fragen pro neuem Feature:
 
 ---
 
+## 1b. Leitsatz fürs Balancing (entschieden 13.09.)
+
+> **Eine Runde soll allein ungefähr so lang dauern wie zu fünft.**
+
+Kein Spielinhalt soll dadurch verschwinden, dass mehr Leute mitspielen. Fünf
+Spieler sollen dasselbe Spiel erleben wie einer — nicht dasselbe Spiel in einem
+Fünftel der Zeit.
+
+**Was daraus folgt, und das ist der unbequeme Teil:** Eine feste Zahl kann immer
+nur für **eine** Spielerzahl richtig sein. `Vorrat = 50` ist entweder für einen
+Spieler passend oder für fünf, nie für beide. Mehr Stellschrauben lösen das
+nicht — es braucht **Regeln**, also Werte, die sich aus der Spielerzahl ergeben.
+
+Umgesetzt ist das bisher an zwei Stellen, beide mit einem einstellbaren Faktor
+(`1.0` = voll skalieren, `0.0` = abgeschaltet):
+
+| Wo | Feld | Warum |
+|---|---|---|
+| `AOreNode` | `AmountScalePerExtraPlayer` | Der Erzvorrat ist Spielinhalt. Fest wäre er zu fünft in einem Fünftel der Zeit leer. |
+| `ARaidDirector` | `MaxAliveScalePerExtraPlayer` | Eine feste Decke von 20 heißt 20 Gegner für einen — oder vier pro Kopf zu fünft. Mehr Leute machten es also **leichter**. |
+
+Die Bedrohung selbst skaliert schon von allein: sie ist **eine** Zahl für alle,
+steigt zu fünft also fünfmal so schnell, und die Wellen eskalieren entsprechend.
+Das war halb Absicht, halb Glück — bitte nicht "aufräumen".
+
+Gezählt werden nur Spieler **mit Pawn**, an genau einer Stelle
+(`Source\NPCs\PlayerCount.h`). Wer auf seine Wiederbelebung wartet, treibt die
+Zahlen nicht hoch.
+
+**Gemessen wird am Ende jedes Überfalls** — eine Zeile im Log mit Dauer, Erz,
+Wellen, Angreifern und Spielerzahl. Ohne Messung ist Balancing Raten: rund
+fünfzehn Werte wirken auf dieselbe Frage, und man merkt sonst nur "fühlt sich
+anders an".
+
+*Noch nicht erfasst:* Spielertode. Wäre die nächste sinnvolle Zahl.
+
+---
+
 ## 2. Offene Entscheidungen
 
 Bewusst noch nicht entschieden. Nicht in eine Richtung vorbauen, bevor das geklärt ist.
@@ -56,7 +94,8 @@ Das Wichtigste dieser Datei: Stellen, an denen zwei Mechaniken sich später tref
 | **Lieblingssichten + Hinweis-Zähler** | **Speichern** | Persönliche Einstellungen des Spielers, kein Weltzustand. Gehören ins Spieler-Profil, nicht in den Levelstand. |
 | **Lagerzugriff** | **Basis-Zone / Missionen** | `UStorageAccessComponent` beantwortet allein "habe ich Zugriff aufs Lagernetz?". Dort kommt später die Basis-Zone hinein — Anzeige und Handwerkslogik bleiben unangetastet. |
 | **Gebäudeschilder** | **Optionsmenü** | Die Schilder kippen jetzt zur Kamera, damit sie auch von oben lesbar sind. Ein- und ausschalten soll später im Menü möglich sein. |
-| **Alle Spieler-Tasten** | **Enhanced Input** | B / P / U / G / K / 1-4 sind **direkt gebunden** (Platzhalter, ohne Input-Assets). Die Umstellung auf Input-Actions samt Gamepad und Umbelegen lohnt sich **einmal für alle Tasten gemeinsam**. |
+| **Alle Spieler-Tasten** | **Enhanced Input** | B / P / U / G / K / E / 1-4 sind **direkt gebunden** (Platzhalter, ohne Input-Assets). Die Umstellung auf Input-Actions samt Gamepad und Umbelegen lohnt sich **einmal für alle Tasten gemeinsam**. |
+| **Alle Spieler-Tasten** | **Respawn / Pawn-Wechsel** | **Im Spieltest am 13.09. gefunden, und es ist ein echter Blocker fürs Netzwerk:** Alle Bedienungen binden ihre Tasten in `BeginPlay`. Bekommt der Spieler einen **neuen Pawn** (echter Respawn über `GameMode::RestartPlayer`), ist der `PlayerController` zu dem Zeitpunkt noch nicht da — im Log: *"kein PlayerController - keine Tasten gebunden"*. Danach war **keine einzige Taste** mehr belegt: nicht abbauen, nicht bestellen, nicht abholen, nicht ausbauen, nicht kaufen, nicht die Kamera umschalten. Der Respawn steht deshalb wieder auf **Versetzen** (derselbe Pawn wird geheilt und versetzt). Für Multiplayer wird ein echter Pawn-Wechsel gebraucht — **also muss die Input-Umstellung davor passieren, nicht danach.** |
 
 ---
 
@@ -77,6 +116,23 @@ Dinge, auf die mehrere Mechaniken warten. Reihenfolge ist bewusst keine gesetzt.
 ## 5. Laufende Liste — was wann dazukam
 
 *(Neueste oben. Format: Datum — Mechanik — was offen bleibt)*
+
+### 2026-09-13 — Erster vollständiger Spieltest des Kreislaufs
+Der ganze Ablauf ist im Spiel bestätigt: abbauen → Bedrohung steigt → Wellen →
+Angreifer erreicht und schlägt → Spieler stirbt → Erz fällt als Bündel → ein
+Angreifer hebt es auf und trägt es vom Feld → Erz verloren. Dazu Ablieferung,
+Überfall-Ende und die Auswertungszeile.
+
+Schön zu sehen: **drei** Angreifer rannten gleichzeitig zum selben Bündel,
+**einer** bekam es, die anderen gingen sauber auf *Untätig*. Kein doppeltes Erz.
+
+**Im Test gefunden und behoben:** Angreifer blieben stehen, wenn die Wegfindung
+sie vor dem Ziel absetzte und der Spieler stillstand (kein Grund zum Nachsteuern);
+die Ablieferung nahm das *nächste* Lager statt des nächsten, das das Material
+auch annimmt; und das oben beschriebene Tasten-Problem beim Pawn-Wechsel.
+
+**Noch ungetestet:** das Zurückerobern eines Bündels durch den Spieler, und
+alles rund ums Geschütz (noch nicht importiert).
 
 ### 2026-09-12 — Rohstoffe, Kampf und Überfall (Meilenstein 1–7)
 Plan: `Unreal\NPCs\plan-rohstoff-raid-unreal.md`, Einrichtung:
