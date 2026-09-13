@@ -78,6 +78,7 @@ Bewusst noch nicht entschieden. Nicht in eine Richtung vorbauen, bevor das gekl�
 | D3 | **Währung:** bleibt es beim Bezahlen mit Material aus den Lagern, oder kommt eine eigene Währung? | offen | Betrifft nur die Bezahlstelle (`TryBuy`, `TryUpgrade`). Die Kostenlisten bleiben in beiden Fällen gleich. |
 | D4 | **Guide aus "Nimm mich mit":** feste Figur in der Welt oder Menü/Overlay? | offen | Siehe `Konzepte\NimmMichMit_Konzept.md`. |
 | D5 | **Multiplayer-Grundsatzfragen** (Dedicated/Listen Server, Spielerzahl, Job als UObject oder Struct) | Kumpel | Stehen ausführlich in `MULTIPLAYER.md`, Abschnitt 2. |
+| D6 | **Tödlichkeit: entscheidet die Trefferzone statt des Lebensbalkens?** Kopfschuss — oder ein anderes tödliches Organ — tötet sofort, statt zehnmal auf einen Kugelschwamm zu schießen. | Denis — **bevor die Spielerwaffe gebaut wird** | Wunsch von Denis, 13.09. Die Entscheidung ändert `UHealthComponent::ApplyDamage` (heute **zwei** Aufrufer — jetzt billig, mit jeder weiteren Waffe teurer) und die Kollisionseinrichtung **jedes** Ziels. Ausführlich in Abschnitt 5, Eintrag vom 13.09. Fürs Geschütz (Meilenstein 8–11) ändert sie **nichts** — das zielt auf den Rumpf. |
 
 ---
 
@@ -96,6 +97,8 @@ Das Wichtigste dieser Datei: Stellen, an denen zwei Mechaniken sich später tref
 | **Gebäudeschilder** | **Optionsmenü** | Die Schilder kippen jetzt zur Kamera, damit sie auch von oben lesbar sind. Ein- und ausschalten soll später im Menü möglich sein. |
 | **Alle Spieler-Tasten** | **Enhanced Input** | B / P / U / G / K / E / 1-4 sind **direkt gebunden** (Platzhalter, ohne Input-Assets). Die Umstellung auf Input-Actions samt Gamepad und Umbelegen lohnt sich **einmal für alle Tasten gemeinsam**. |
 | **Alle Spieler-Tasten** | **Respawn / Pawn-Wechsel** | **Im Spieltest am 13.09. gefunden, und es ist ein echter Blocker fürs Netzwerk:** Alle Bedienungen binden ihre Tasten in `BeginPlay`. Bekommt der Spieler einen **neuen Pawn** (echter Respawn über `GameMode::RestartPlayer`), ist der `PlayerController` zu dem Zeitpunkt noch nicht da — im Log: *"kein PlayerController - keine Tasten gebunden"*. Danach war **keine einzige Taste** mehr belegt: nicht abbauen, nicht bestellen, nicht abholen, nicht ausbauen, nicht kaufen, nicht die Kamera umschalten. Der Respawn steht deshalb wieder auf **Versetzen** (derselbe Pawn wird geheilt und versetzt). Für Multiplayer wird ein echter Pawn-Wechsel gebraucht — **also muss die Input-Umstellung davor passieren, nicht danach.** |
+| **Trefferzonen (D6)** | **Spielerwaffe** | Die Zonenfrage wird erst mit der Waffe real — das Geschütz zielt auf die Mitte der Bounding Box, also den Rumpf. Entschieden sein muss sie aber **vorher**, sonst wird `ApplyDamage` zweimal umgebaut. |
+| **Trefferzonen (D6)** | **Kollision an allen Zielen** | Ein Trefferzonen-System braucht einen **eigenen Trace-Kanal**: die Character-Kapsel muss ihn ignorieren, das Skeletal Mesh ihn blocken. Das betrifft `BP_Angreifer`, `BP_CraftPlayer`, `BP_Geschuetz` und später jedes Gebäude — nicht nur eine Klasse. |
 
 ---
 
@@ -116,6 +119,59 @@ Dinge, auf die mehrere Mechaniken warten. Reihenfolge ist bewusst keine gesetzt.
 ## 5. Laufende Liste — was wann dazukam
 
 *(Neueste oben. Format: Datum — Mechanik — was offen bleibt)*
+
+### 2026-09-13 — Design-Frage aufgemacht: Trefferzonen statt Kugelschwamm (D6)
+Denis will kein Spiel, in dem man tausend Schuss in einen Gegner leert. **Ein
+Kopfschuss soll töten**, ebenso ein Treffer auf ein anderes tödliches Organ. Zäh
+soll es nur werden, wenn man die **falsche Waffe** benutzt.
+
+Davon stand bisher **nirgends** etwas — weder in den Plänen noch hier. Das ist
+ein neuer Gedanke, kein vergessener. Deshalb als **D6** aufgenommen und
+**nicht** gebaut.
+
+**Was schon in die richtige Richtung gebaut ist:**
+
+- **K5 hat vorgesorgt.** Es gibt genau eine Schadensfunktion,
+  `UHealthComponent::ApplyDamage(Menge, Verursacher)`. Alles Tödliche geht durch
+  diese eine Stelle — Geschütz, Angreifer, später die Spielerwaffe.
+- **Der Schuss ist bereits ein Line Trace** (`UTurretComponent`, Feuern). Ein
+  `FHitResult` enthält von Haus aus `BoneName` — die Information *„was wurde
+  getroffen"* liegt also schon vor und wird heute nur weggeworfen.
+
+**Was fehlt — drei Dinge, und keins davon geht von allein:**
+
+1. **Der Strahl trifft heute die Kapsel, nicht den Körper.** Bei einem
+   Unreal-Character blockt die Collision-Kapsel den Kanal `Visibility`; der Trace
+   endet an einem Zylinder um den ganzen NPC und `BoneName` bleibt leer. Es
+   braucht einen **eigenen Trace-Kanal**, den die Kapsel ignoriert und das
+   Skeletal Mesh blockt.
+2. **Jedes Ziel braucht ein brauchbares Physics Asset**, dessen Bodies den Zonen
+   entsprechen. Beim Geschütz ist das geplant (fünf Boxen, `T01_Geschuetz_Import.md`),
+   bei den NPCs bisher überhaupt nicht bedacht.
+3. **`ApplyDamage` braucht einen Parameter mehr** — Zone oder fertiger
+   Multiplikator. Genau der Umbau, den K5 vermeiden wollte. **Heute mit zwei
+   Aufrufern billig**, nach der Spielerwaffe teuer.
+
+**Was Denis noch entscheiden muss:**
+
+- **Gilt es auch für ihn selbst?** Wenn ein Kopfschuss tötet, tötet er auch den
+  Spieler. Und: bekommen **Nahkampf**treffer Zonen, oder nur Schüsse? Die
+  Angreifer schlagen heute zu, sie schießen nicht.
+- **Haben die Angreifer überhaupt Organe?** „Tödliches Organ" heißt bei einer
+  Maschine eher **Schwachstelle** — Kern, Kühler, Sensor. Das ist eine
+  Entscheidung über die Gegner, nicht über den Code.
+- **Bleiben Lebenspunkte?** Vermutlich ja: für Treffer außerhalb der Zonen und
+  für Gebäude, die gar keine Zonen haben.
+- **„Falsche Waffe"** setzt Waffen- **und** Panzerungsarten voraus. Eigenes
+  Thema, **nicht** zusammen mit D6 vorbauen.
+
+**Berührt Abschnitt 1b:** Tödlichkeit ist Balancing. Heute hat ein Angreifer
+50 LP und das Geschütz 12 Schaden pro Schuss — mit einer Sofort-tot-Zone
+verschiebt sich dieses Verhältnis komplett.
+
+**Netzwerkseite:** siehe `MULTIPLAYER.md`, Eintrag vom 13.09. (**N-10**). Kurz:
+solange nur das Geschütz schießt, harmlos; mit einer Spielerwaffe wird daraus
+Lag Compensation.
 
 ### 2026-09-13 — Erster vollständiger Spieltest des Kreislaufs
 Der ganze Ablauf ist im Spiel bestätigt: abbauen → Bedrohung steigt → Wellen →

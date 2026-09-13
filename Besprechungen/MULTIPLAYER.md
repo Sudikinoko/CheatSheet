@@ -123,6 +123,36 @@ Drei Fragen pro neuem Feature:
 
 *(Neueste oben. Format: Datum — Feature — Auswirkung)*
 
+### 2026-09-13 — Design-Frage: Trefferzonen (D6) — der teuerste Netzwerkpunkt bisher
+
+**Noch nicht entschieden** (siehe `OFFENE_PUNKTE.md`, D6). Der Netzwerkteil
+gehört trotzdem jetzt notiert, weil er die Entscheidung mitbestimmt — und weil
+er teurer ist, als er von außen aussieht.
+
+Denis will Kopfschuss = tot statt Kugelschwamm. Solange **nur das Geschütz**
+schießt, ist das netzwerktechnisch harmlos: der Turm steht auf dem Server, sucht
+serverseitig sein Ziel und zieht serverseitig seinen Line Trace. Kein Client
+redet mit. **Erst die Spielerwaffe macht daraus ein Problem.**
+
+| # | Punkt | Was zu tun ist |
+|---|---|---|
+| **N-10** | **Trefferzonen + Ping = Lag Compensation** | Ein Client sieht den Gegner dort, wo er vor einer halben Ping-Zeit war. Zielt er auf den Kopf und schickt den Schuss zum Server, steht der Gegner dort längst woanders — **der Kopfschuss geht ins Leere, obwohl der Spieler getroffen hat.** Bei großen Trefferflächen fällt das kaum auf, bei einem Kopf sofort. Die übliche Antwort heißt **Rewind**: der Server merkt sich die Hitbox-Positionen der letzten Sekunden und spult sie um die Latenz des Schützen zurück, bevor er prüft. Das ist **deutlich mehr Apparat** als „`ApplyDamage` nur mit `HasAuthority()`" und gehört in die Entscheidung eingerechnet. |
+
+**Was sich an bestehenden Punkten ändert:**
+
+- **N-2 bleibt richtig, wird aber größer.** Der Trace darf weiterhin nur
+  serverseitig zählen — aber *„wo war der Kopf im Moment des Schusses"* ist dann
+  eine Frage, die der Server überhaupt beantworten können muss.
+- **Die Signatur von `ApplyDamage` ändert sich** (ein Parameter für die Zone).
+  Das ist **keine neue Baustelle**: es bleibt bei *einer* Stelle mit
+  `HasAuthority()`, sie bekommt nur ein Argument mehr. Genau dafür war K5 da.
+- **Der Notify-Punkt vom 12.09. gilt unverändert:** Der Anim-Notify trennt Effekt
+  und Schaden. Mündungsblitz auf jedem Client, Trefferprüfung nur auf dem Server.
+
+**Die Reihenfolge, die daraus folgt:** Trefferzonen lohnt es sich **vor** dem
+Netzwerkumbau zu *entscheiden*, aber **nach** ihm zu *bauen* — sonst entsteht das
+Rewind zweimal.
+
 ### 2026-09-13 — Design-Entscheidung: Sterben ist im Mehrspieler ein TEAM-Zustand
 
 **Das ist keine Technikfrage, sondern eine Design-Vorgabe von Denis. Sie gehört
