@@ -123,6 +123,44 @@ Drei Fragen pro neuem Feature:
 
 *(Neueste oben. Format: Datum — Feature — Auswirkung)*
 
+### 2026-09-13 — Design-Entscheidung: Sterben ist im Mehrspieler ein TEAM-Zustand
+
+**Das ist keine Technikfrage, sondern eine Design-Vorgabe von Denis. Sie gehört
+gelesen, bevor am Respawn gebaut wird.**
+
+Im **Einzelspieler** bleibt es wie jetzt: sterben, kurz warten, in der Basis
+aufwachen.
+
+Im **Mehrspieler** soll daraus ein gemeinsamer Kampf werden:
+
+| Zustand | Dauer | Was gilt |
+|---|---|---|
+| **Am Boden** | ~20 s | Mitspieler können den Gefallenen wiederbeleben |
+| **Richtig tot** | ~60 s | Niemand hat ihn rechtzeitig erreicht — er kommt erst nach Ablauf zurück |
+
+Die Zahlen sind Startwerte, keine Festlegung.
+
+**Warum das wichtig ist:** Erst damit wird die bestehende Abbruchbedingung
+spielbar. Der Überfall endet zugunsten der Angreifer, wenn *alle Spieler tot
+sind und die Gegner das Erz haben* — heute ist „alle tot" bei sofortigem
+Respawn praktisch nie wahr. Mit einem Am-Boden-Zustand entsteht genau die
+Situation, die die Regel meint: **entweder kommt das ganze Team zurück, oder
+keiner — und keiner heißt auch keine Rohstoffe.**
+
+**Was daran hängt:**
+
+- **Ein gemeinsamer Wiederbelebungspunkt** statt individuellem Respawn am
+  nächsten PlayerStart.
+- **N-8 wird dadurch schärfer:** `AllPlayersInBase()` zählt einen Spieler ohne
+  Pawn absichtlich als *nicht in der Basis*. Mit einem Am-Boden-Zustand muss
+  unterschieden werden zwischen „liegt draußen und wartet auf Hilfe" und „ist
+  weg und kommt in 60 s wieder" — das eine hält den Überfall offen, das andere
+  entscheidet ihn.
+- **Der Tasten-Blocker trifft direkt hierauf.** Ein gemeinsamer
+  Wiederbelebungspunkt heißt Pawn-Wechsel, und der macht derzeit alle
+  Bedienungen tot (siehe `OFFENE_PUNKTE.md`, Abschnitt 3). Die Umstellung auf
+  Enhanced Input muss **davor** passieren.
+
 ### 2026-09-12 — Rohstoffe, Kampf und Überfall (Meilenstein 1–7)
 
 Plan: `Unreal\NPCs\plan-rohstoff-raid-unreal.md`. Neuer Kreislauf: Erz abbauen →
