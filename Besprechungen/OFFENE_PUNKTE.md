@@ -74,7 +74,7 @@ Bewusst noch nicht entschieden. Nicht in eine Richtung vorbauen, bevor das gekl�
 | # | Frage | Wer / wann | Warum sie wartet |
 |---|---|---|---|
 | D1 | **Projektstruktur:** ein gemeinsames Projekt oder getrennte pro Mechanik? | Denis + Kumpel | Betrifft den Kumpel direkt (Multiplayer). Empfehlung der KI: **ein** Projekt, Mechaniken als Ordner, je eine Testszene, ein `_Core` für Geteiltes. |
-| ~~D2~~ | ~~**Kampf und Perspektive:** Top-Down nur zum Bauen?~~ | **Entschieden 12.09.** | **Einfache Variante:** der Kampf zieht die Sicht auf Third-Person zurück, die Zeiger-Sichten bleiben fürs Bauen. `SetCombatActive()` wird vom `ARaidDirector` gerufen. Ein echtes Top-Down-Kampfsystem (Zielen zum Mauszeiger, Höhenunterschiede) kommt später als **eigenes Thema** — dann wird D2 wieder aufgemacht. |
+| ~~D2~~ | ~~**Kampf und Perspektive:** Top-Down nur zum Bauen?~~ | **Neu entschieden 16.09.** | **Gekämpft wird in ALLEN Sichten** — Ego, Third-Person und Top-Down. Denis hat die Fassung vom 12.09. („Kampf zieht die Sicht zurück") ausdrücklich verworfen, mit zwei Gründen: es gibt **noch gar kein Spieler-Kampfsystem**, und eine Sicht zu sperren, in der später gekämpft werden soll, ist verkehrt herum gedacht. Alle Anker stehen deshalb auf `bCombatAllowed = true`; `SetCombatActive()` wird vom `ARaidDirector` weiter gerufen, bewirkt aber nichts. Die Mechanik bleibt für den Fall stehen, dass sich eine einzelne Sicht später als untauglich erweist — dann genügt ein `false` an dem einen Anker. Das Top-Down-Zielen bleibt eine Frage **an das Kampfsystem**, wenn es gebaut wird, nicht an die Kamera. |
 | D3 | **Währung:** bleibt es beim Bezahlen mit Material aus den Lagern, oder kommt eine eigene Währung? | offen | Betrifft nur die Bezahlstelle (`TryBuy`, `TryUpgrade`). Die Kostenlisten bleiben in beiden Fällen gleich. |
 | D4 | **Guide aus "Nimm mich mit":** feste Figur in der Welt oder Menü/Overlay? | offen | Siehe `Konzepte\NimmMichMit_Konzept.md`. |
 | D5 | **Multiplayer-Grundsatzfragen** (Dedicated/Listen Server, Spielerzahl, Job als UObject oder Struct) | Kumpel | Stehen ausführlich in `MULTIPLAYER.md`, Abschnitt 2. |
@@ -91,8 +91,8 @@ Das Wichtigste dieser Datei: Stellen, an denen zwei Mechaniken sich später tref
 | **Kamera (Top-Down)** | **Bauen** | Der Zeigermodus liefert einen sichtbaren Mauszeiger und kamerarelative Bewegung — das Bauen selbst liegt noch in `Unity\Bauen V1` und ist nicht portiert. Der Zeiger hat aktuell **nichts zum Anklicken**. |
 | **Kamera (Hinweis)** | **"Nimm mich mit"** | `UPlayerHintComponent::ShouldShow(Thema)` wird heute von einem Zähler beantwortet. Sobald das Tagebuch (Schicht A) existiert, beantwortet es dieselbe Funktion — **eine Funktion umstellen**, sonst nichts. Siehe `NimmMichMit_Konzept.md`, "Erster Anwendungsfall". |
 | **Lean Shop** | **alles Käufliche** | Der Shop ist von Anfang an als **Liste** von Angeboten gebaut. Neue Ware = ein neues Data Asset, kein Code. Der Kamera-Roboter ist das erste Angebot. |
-| **Freischaltungen** | **Speichern** | `UUnlockComponent` hält, was der Spieler besitzt. Ohne Speichersystem ist ein Kauf nach dem Neustart weg. |
-| **Lieblingssichten + Hinweis-Zähler** | **Speichern** | Persönliche Einstellungen des Spielers, kein Weltzustand. Gehören ins Spieler-Profil, nicht in den Levelstand. |
+| **Freischaltungen** | **Speichern (Welt)** | `UUnlockComponent` hält, was der Spieler besitzt. Ein Kauf ist nach dem Neustart weg — und das bleibt vorerst **mit Absicht so**: bezahlt wird aus den Lagern, und die Lagerbestände speichert niemand. Käme der Kauf ins Spieler-Profil, hätte man nach einem Neustart das Material **und** die Ware. Der Kauf gehört deshalb ins Weltspeichern, zusammen mit den Beständen. |
+| **Lieblingssichten + Hinweis-Zähler** | ~~Speichern~~ **erledigt 15.09.** | Liegen jetzt im Spieler-Profil (`UPlayerProfileSubsystem`, Datei `Saved/SaveGames/SpielerProfil.sav`). Geschrieben wird sofort bei jeder Änderung. **Das Profil nimmt bewusst nur Einstellungen auf, keinen Weltzustand** — die Begründung steht in `PlayerProfileSave.h`. |
 | **Lagerzugriff** | **Basis-Zone / Missionen** | `UStorageAccessComponent` beantwortet allein "habe ich Zugriff aufs Lagernetz?". Dort kommt später die Basis-Zone hinein — Anzeige und Handwerkslogik bleiben unangetastet. |
 | **Gebäudeschilder** | **Optionsmenü** | Die Schilder kippen jetzt zur Kamera, damit sie auch von oben lesbar sind. Ein- und ausschalten soll später im Menü möglich sein. |
 | **Alle Spieler-Tasten** | **Enhanced Input** | B / P / U / G / K / E / 1-4 sind **direkt gebunden** (Platzhalter, ohne Input-Assets). Die Umstellung auf Input-Actions samt Gamepad und Umbelegen lohnt sich **einmal für alle Tasten gemeinsam**. |
@@ -119,6 +119,49 @@ Dinge, auf die mehrere Mechaniken warten. Reihenfolge ist bewusst keine gesetzt.
 ## 5. Laufende Liste — was wann dazukam
 
 *(Neueste oben. Format: Datum — Mechanik — was offen bleibt)*
+
+### 2026-09-16 — Kamera: siebter Anker, mittige Sicht, Fadenkreuz, Kampf überall
+
+**Siebter Anker „Fernsicht"** (`t = 6`, 3500 cm). **Ab „Hoch" (`t = 3`) steht der
+Spieler mittig im Bild** — die Kamera steht dort senkrecht über ihm und schaut
+gerade hinunter. Die vier äußeren Anker unterscheiden sich nur noch in der Höhe
+(850, 1400, 2200, 3500). Top-Down hat dafür seinen Versatz nach vorn verloren,
+also die freie Baufläche im unteren Bilddrittel — bewusst, auf Denis' Wunsch.
+
+**„Mittel" (`t = 2`) ist jetzt Blickmodus statt Zeigermodus**, mit
+`PitchFollow = 0.5` und erlaubtem Kampf. Damit reicht die spielbare Sicht eine
+Stufe weiter hinaus: Maus dreht den Blick, Fadenkreuz da, kein Cursor. Der
+Zeigermodus beginnt erst zwischen „Mittel" und „Hoch" (`t ≈ 2,5`).
+
+**Das Fadenkreuz hängt wieder am Steuerungsmodus**, nicht an einer eigenen
+Grenze. Eine zweite Stelle, die „bis hierhin kann man zielen" festlegt, wäre
+früher oder später auseinandergelaufen. Wer es länger sichtbar haben will,
+stellt den betreffenden Anker auf Blickmodus.
+
+**Offen / verbunden:** Der Übergang „Mittel" → „Hoch" kippt jetzt in einem Zug
+von −20° auf −89° und fühlt sich laut Denis „ein bisschen komisch" an — bewusst
+so gelassen, bis jemandem etwas Besseres einfällt. Der naheliegende Hebel wäre
+ein steilerer Winkel bei „Mittel", damit der Sprung kleiner wird. Siehe auch
+**D2** oben: gekämpft wird jetzt in allen Sichten.
+
+### 2026-09-15 — Spieler-Profil + sechster Kamera-Anker
+
+**Spieler-Profil** (`Source/NPCs/Profil/`): Lieblingssichten und Hinweis-Zähler
+überleben jetzt das Spielende. `UPlayerProfileSubsystem` besitzt die Datei,
+`UPlayerProfileSave` ist der Behälter. Geschrieben wird **sofort bei jeder
+Änderung**, nicht beim Beenden — im Editor endet ein Spiel mit Stop, und ein
+Absturz kündigt sich nicht an.
+
+**Sechster Anker "Uebersicht"** (`t = 5`): höher als Top-Down und genau über dem
+Spieler, damit er mittig im Bild sitzt. Bricht bewusst die 13-Grad-Regel der
+anderen weiten Anker — Top-Down bleibt die Bau-Sicht, die Übersicht ist der Blick
+aufs Ganze.
+
+**Offen / verbunden:** Der **Kauf** bleibt draußen (siehe Abschnitt oben,
+Dublier-Lücke über die Lagerbestände). Taste **4** springt weiterhin auf Top-Down,
+nicht auf die neue Übersicht — bewusst nicht ungefragt umgestellt. Die Anker-Werte
+(Höhe 2200) sind ein erster Vorschlag und im Details-Panel veränderbar; **Achtung:**
+wer das Anker-Array im Blueprint anfasst, erbt danach nicht mehr vom C++-Code.
 
 ### 2026-09-13 — Design-Frage aufgemacht: Trefferzonen statt Kugelschwamm (D6)
 Denis will kein Spiel, in dem man tausend Schuss in einen Gegner leert. **Ein

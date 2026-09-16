@@ -123,6 +123,37 @@ Drei Fragen pro neuem Feature:
 
 *(Neueste oben. Format: Datum — Feature — Auswirkung)*
 
+### 2026-09-15 — Spieler-Profil (Lieblingssichten, Hinweis-Zähler)
+
+`UPlayerProfileSubsystem` (ein **GameInstanceSubsystem**) besitzt die Datei
+`Saved/SaveGames/SpielerProfil.sav` und schreibt sie bei jeder Änderung.
+
+**Auswirkung auf Multiplayer:**
+
+- **Unkritisch, und zwar bauartbedingt.** Ein GameInstanceSubsystem lebt auf
+  **jeder Maschine einzeln**. Jeder Spieler hat damit automatisch sein eigenes
+  Profil auf seinem eigenen Rechner — genau das, was persönliche Einstellungen
+  brauchen. Nichts zu replizieren, nichts abzugleichen.
+- **Auf einem Dedicated Server** läuft das Subsystem ebenfalls, hat dort aber
+  niemanden, für den es etwas speichern könnte. Das ist harmlos (es schreibt nur,
+  wenn jemand etwas ändert), sollte beim Umbau aber bewusst so bleiben: der
+  Server darf **nicht** anfangen, Profile für Clients zu führen.
+- **Eine Grenze, die vor dem Splitscreen fällt:** es gibt **ein Profil pro
+  Maschine**, nicht pro Spieler (`ProfileUserIndex` steht fest auf 0). Bei zwei
+  lokalen Spielern — Splitscreen, oder *Number of Players = 2* im Editor —
+  teilen sich beide eine Datei, halten aber je ihren eigenen Stand im Speicher.
+  Wer zuletzt schreibt, gewinnt: die Lieblingssichten des einen überschreiben die
+  des anderen. **Nicht durch klügeres Zusammenrechnen beim Schreiben lösbar** —
+  die Werte gehören zwei Personen und müssen getrennt bleiben. Der Weg ist ein
+  eigener Benutzerplatz je lokalem Spieler; die Umstellung ist **eine** Stelle,
+  weil alles Laden und Schreiben durch das Subsystem geht. Für den Netzwerk-Fall
+  (jeder an seinem eigenen Rechner) ist nichts zu tun.
+- **Die eigentliche Gefahr ist inhaltlich, nicht technisch:** Weltzustand darf
+  hier nicht hinein. Sonst hat jeder Client seine eigene Wahrheit über etwas, das
+  allen gehört. Der Kauf im Lean Shop ist genau dieser Fall und bleibt deshalb
+  draußen — er gehört zu **M2** (repliziert) und in ein Weltspeichern, zusammen
+  mit den Lagerbeständen. Begründung im Kopf von `PlayerProfileSave.h`.
+
 ### 2026-09-13 — Design-Frage: Trefferzonen (D6) — der teuerste Netzwerkpunkt bisher
 
 **Noch nicht entschieden** (siehe `OFFENE_PUNKTE.md`, D6). Der Netzwerkteil
