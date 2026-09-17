@@ -120,6 +120,28 @@ Dinge, auf die mehrere Mechaniken warten. Reihenfolge ist bewusst keine gesetzt.
 
 *(Neueste oben. Format: Datum — Mechanik — was offen bleibt)*
 
+### 2026-09-17 — Wandvermeidung an die Tastrichtung angepasst
+
+Die Untergrenze, die verhindert, dass die Kamera beim Ausweichen in den Spieler
+rutscht, rechnete immer mit dem Kapsel**radius** (34). Seit die Kamera ab „Hoch"
+senkrecht über dem Spieler steht, ist dort aber die **Halbhöhe** (96) das Maß —
+die Grenze lag 62 cm zu tief. Jetzt wird zwischen beiden nach der Tastrichtung
+gemischt. Betrifft auch die schrägen Anker: Third-Person 46 → 64, Mittel 46 → 80.
+
+**Offen, bewusst noch nicht gebaut — erst spielen, dann entscheiden:** Alle vier
+Weitsichten stehen seit dem 16.09. auf **derselben senkrechten Linie**. Stellt
+sich der Spieler unter ein Dach, trifft der Suchstrahl dieses Dach bei allen
+vieren an praktisch derselben Stelle — „Hoch", „Top-Down", „Übersicht" und
+„Fernsicht" klemmen dann auf dieselbe Höhe, und die Höhenleiter
+(850/1400/2200/3500) ist drinnen nicht mehr unterscheidbar. Vorher konnte das
+nicht passieren, weil „Hoch" schräg hinter dem Spieler stand.
+
+Im Level `Lvl_Wiese` gibt es derzeit nichts, unter das man sich stellen kann —
+der Fehler ist also **nicht nachweisbar**, und nach der Projektregel „erst
+messen, dann ändern" wird er deshalb nicht auf Verdacht behoben. Sobald es
+Gebäude mit Dach gibt: nachsehen, ob es stört. Denkbare Lösung wäre, dass die
+Weitsichten Dächer über dem Spieler beim Ausweichen ignorieren.
+
 ### 2026-09-16 — Kamera: siebter Anker, mittige Sicht, Fadenkreuz, Kampf überall
 
 **Siebter Anker „Fernsicht"** (`t = 6`, 3500 cm). **Ab „Hoch" (`t = 3`) steht der
