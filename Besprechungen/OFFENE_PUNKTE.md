@@ -11,7 +11,7 @@ Gegenstück zu `MULTIPLAYER.md`:
 Wer neu dazukommt (oder nach Wochen zurückkommt) soll hier in fünf Minuten sehen:
 *Was gibt es schon? Was fehlt noch? Was muss später zusammengeführt werden?*
 
-- **Letzte Aktualisierung:** 2026-09-12
+- **Letzte Aktualisierung:** 2026-09-17
 
 ---
 
@@ -119,6 +119,51 @@ Dinge, auf die mehrere Mechaniken warten. Reihenfolge ist bewusst keine gesetzt.
 ## 5. Laufende Liste — was wann dazukam
 
 *(Neueste oben. Format: Datum — Mechanik — was offen bleibt)*
+
+### 2026-09-17 — Startprüfung, und warum der Angreifer am Erz klebte
+
+**Die Startprüfung** (`Source\NPCs\StartupCheckSubsystem.cpp`) prüft eine Sekunde
+nach Spielstart alle Actors und danach jeden neu erzeugten. Sie meldet zwei
+Dinge, die Unreal **schweigend hinnimmt**: einen Actor mit Lebenspunkten, der
+den Kanal `Visibility` nicht blockt (Line Traces gehen durch ihn hindurch), und
+einen NPC, der größer ist als der NavMesh-Agent, auf dem er laufen soll.
+Die Regel für neue Prüfungen steht in `Unreal\NPCs\CLAUDE.md`: nur aufnehmen,
+was wirklich still scheitert — eine Prüfung mit Fehlalarm bringt man sich selbst
+bei zu überlesen.
+
+**Der Angreifer-Fehler.** Er lief los und blieb über drei Spielsitzungen auf
+4 cm genau an derselben Stelle stehen, während die Wegfindung sauberen Erfolg
+meldete. Ursache: `ChaseTarget()` übergab `AttackRange` (350 cm) als
+Annahmeradius. Unreal prüft die Ankunft aber **nicht gegen das Ziel, sondern
+gegen das Ende des aktuellen Weg-Abschnitts**. Der Erzbrocken schlägt ein Loch
+ins NavMesh, der Weg muss um dessen Ecke — und die lag 349,2 cm entfernt.
+
+**Laufgenauigkeit und Schlagweite sind seitdem getrennt:**
+`PathAcceptanceRadius` (50 cm) für den Weg, `AttackRange` für den Kampf. Beim
+Wechsel in den Angriffszustand wird der Lauf abgebrochen — vorher endete er nur
+zufällig an der richtigen Stelle, weil beide Werte identisch waren.
+
+**Merksatz für später:** Ein Annahmeradius ist eine Weg-Genauigkeit, keine
+Spielreichweite. Wer eine Gameplay-Distanz dort einsetzt, bekommt einen NPC, der
+an einer beliebigen Wegecke „ankommt".
+
+**Offen / verbunden:**
+
+- **Geschütz und Spieler blocken `Visibility` nicht.** Heute folgenlos — nichts
+  schießt per Strahl auf sie. Wird akut, sobald der Spieler eine Waffe bekommt
+  oder Angreifer auf Distanz schießen. Die Startprüfung meldet es bei jedem
+  Start.
+- **`UCraftingStationComponent::GetWorkSpotLocation()`** hat denselben
+  Ecken-Fehler, der in `UMaterialStorageComponent::GetAccessLocation()` behoben
+  wurde — betrifft den **Rückweg** des Handwerkers zur Station.
+- **`RaidDirector.cpp`**: `while (Threat >= NextWaveThreshold)` friert das Spiel
+  still ein, wenn `ThreatPerWave` auf 0 steht. Bremse fehlt.
+- **`IsInBase()` hält jedes Lager für die Basis** — ein zweites Lager bricht die
+  Abbruchbedingung des Überfalls.
+- Der **Meldungstext** der Visibility-Prüfung liest sich, als würde gerade
+  jemand auf den Spieler zielen. Tut niemand: das Geschütz überspringt
+  befreundete Seiten, bevor es überhaupt Entfernung oder Sicht prüft
+  (`TurretComponent.cpp:175`). Text gehört geradegezogen.
 
 ### 2026-09-17 — Wandvermeidung an die Tastrichtung angepasst
 

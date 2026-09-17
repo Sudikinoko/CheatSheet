@@ -352,4 +352,30 @@ nächstgelegenen Lager mit ausreichendem Bestand, Fertigung mit Stufen-Multiplik
 Abholung (Taste P), Welt-Anzeigen mit Status/Fortschritt/Füllstand.
 **Auswirkung:** M1–M3 oben.
 
+### 2026-09-17 — Startprüfung + getrennter Laufradius beim Angreifer
+
+Neu: `UStartupCheckSubsystem` (prüft beim Spielstart stille Fehleinstellungen)
+und `ARaiderNpc::PathAcceptanceRadius`, der die Weg-Genauigkeit von der
+Schlagweite `AttackRange` trennt.
+
+**Auswirkung auf Multiplayer:**
+
+- **Die Startprüfung gehört auf den Server.** Sie ist ein WorldSubsystem und
+  liefe im Netzwerkspiel auf **jedem Client noch einmal** — dieselben Meldungen
+  mehrfach, und auf Clients teils falsch, weil dort nicht alle Actors repliziert
+  sind (ein Actor, der beim Client fehlt, sieht aus wie „nicht vorhanden", nicht
+  wie „falsch eingestellt"). Vor dem Netzwerkbau ein `HasAuthority()` davor.
+  Gehört zu **M2**.
+- **`PathAcceptanceRadius` ist reine Konfiguration** und ändert sich im Spiel
+  nie — muss **nicht** repliziert werden, genau wie `AttackRange`.
+- **Die Bewegung selbst bleibt Server-Sache.** `ChaseTarget()` und der Abbruch
+  des Laufs beim Wechsel in den Angriffszustand laufen über den AIController;
+  im Netzwerkspiel denkt und läuft der NPC auf dem Server, Clients sehen nur das
+  Ergebnis. Das ist bereits der Plan (**N4**) und ändert sich hierdurch nicht.
+- **Die Ankunftsprüfung ist ein Präzedenzfall fürs Netzwerk**: Der NPC kam an
+  einer Wegecke „an", weil eine Gameplay-Distanz als Weg-Toleranz benutzt wurde.
+  Dieselbe Verwechslung im Netzwerk wäre teurer — eine Reichweitenprüfung, die
+  serverseitig wiederholt werden muss, darf nie identisch mit einem
+  Wegfindungs-Parameter sein.
+
 <!-- Neue Einträge hier einfügen -->
