@@ -31,16 +31,24 @@ ein Denkfehler sonst erst nach 200 Zeilen auffällt.
 
 ### Installieren
 
-Er liegt nicht in diesem Repo, damit ihr immer die aktuelle Fassung habt. Beide
+Er liegt nicht in diesem Repo, damit ihr immer die aktuelle Fassung habt. **Beide**
 Ordner werden gebraucht — `grill-me` ist nur der Startknopf, der Inhalt steckt in
-`grilling`:
+`grilling`. Fehlt der zweite, zeigt der Befehl ins Leere.
+
+**Windows (PowerShell):**
+
+```powershell
+git clone --depth 1 https://github.com/mattpocock/skills.git $env:TEMP\mp-skills; Copy-Item -Recurse "$env:TEMP\mp-skills\skills\productivity\grill-me","$env:TEMP\mp-skills\skills\productivity\grilling" "$env:USERPROFILE\.claude\skills\"; Remove-Item -Recurse -Force $env:TEMP\mp-skills
+```
+
+**Git Bash, Linux, macOS:**
 
 ```bash
 git clone --depth 1 https://github.com/mattpocock/skills.git /tmp/mp-skills && cp -r /tmp/mp-skills/skills/productivity/grill-me /tmp/mp-skills/skills/productivity/grilling ~/.claude/skills/ && rm -rf /tmp/mp-skills
 ```
 
-Danach Claude Code neu starten und `/grill-me` aufrufen. Unter Windows liegt der
-Zielordner unter `C:\Users\<name>\.claude\skills\`.
+Danach Claude Code neu starten und `/grill-me` aufrufen. Zielordner ist unter Windows
+`C:\Users\<name>\.claude\skills\`, sonst `~/.claude/skills/`.
 
 Herkunft: [github.com/mattpocock/skills](https://github.com/mattpocock/skills) von
 Matt Pocock, MIT-Lizenz.
