@@ -33,6 +33,10 @@
 7. **Idee "Nimm mich mit":** Guide-NPC, der beim Spielstart den aktuellen Stand
    erklärt. Hängt am Speichersystem + Spieler-Identität → im gemeinsamen Projekt
    bauen. Konzept: `Workspaces/Konzepte/NimmMichMit_Konzept.md`.
+8. **Idee "KI-Besprechungsbot":** Ein Bot ist bei den Besprechungen dabei,
+   zeichnet auf und fasst danach zusammen — pflegt diese Datei selbst: trägt
+   Geklärtes ein, hält neue Punkte fest, legt bei Bedarf neue Dateien für
+   entstehende Ideen an. Siehe Abschnitt 9.
 
 ---
 
@@ -152,6 +156,23 @@ längerer Pause wegnehmen. Gestaffelt nach Abwesenheitsdauer.
 - Der Weitergabe-Skill kommt nach `<repo>/.claude/skills/`. Die Unreal-Fassung heißt
   `lernbegleiter-unreal`, die Unity-Fassung liegt in `CheatSheet/lernbegleiter-skill/`.
 
+## 9. Idee: KI-Bot für Besprechungen ("KI Discord")
+
+Denis' Idee (18.09.): Ein Bot ist bei den Discord-Besprechungen mit dem Kumpel
+dabei, zeichnet das Gespräch auf, fasst danach zusammen und pflegt die
+Besprechungsdatei(en) selbst — ersetzt Punkte, die geklärt wurden, trägt neu
+aufgekommene offene Punkte ein und legt bei Bedarf eigene Dateien für neue Ideen
+an (ähnlich wie `Konzepte/NimmMichMit_Konzept.md` heute von Hand entsteht).
+
+**Noch nicht entschieden — offene Fragen dazu:**
+- Technische Umsetzung: Discord-Bot mit Aufnahme/Transkription, dahinter eine KI
+  zum Zusammenfassen — welche, und wie an dieses Repo angebunden?
+- Ersetzt der Bot die heutige Handarbeit (Denis pflegt die Dateien nach dem
+  Gespräch) komplett, oder bleibt ein Kontroll-Schritt durch eine Person, bevor
+  etwas als "geklärt" markiert wird?
+- Aufzeichnung nur mit Zustimmung beider — kurz ansprechen, auch wenn nur zwei
+  Leute betroffen sind.
+
 ---
 
 ## Stand von Denis' Mechaniken (Kontext für den Kumpel)
@@ -163,7 +184,10 @@ längerer Pause wegnehmen. Gestaffelt nach Abwesenheitsdauer.
   (Milestones 1–6). Milestone 7 (sichtbares Feedback) offen. Wird durch die
   Unreal-Portierung abgelöst.
 - **Unity `Bauen V1 Stein an Stein`** — Baumechanik + erster Player-Controller.
-  **Offen: Wird die Baumechanik nach Unreal portiert, oder fällt sie weg?**
+  **Entschieden (18.09., Denis): Die Baumechanik fällt weg, wird nicht nach
+  Unreal portiert.** Betrifft die Querverbindung "Kamera (Top-Down) → Bauen" in
+  `OFFENE_PUNKTE.md` — der Zeigermodus hat damit auf absehbare Zeit nichts zum
+  Anklicken.
 
 ---
 
@@ -173,7 +197,7 @@ längerer Pause wegnehmen. Gestaffelt nach Abwesenheitsdauer.
 
 ## Ergebnisse / Beschlüsse (nach der Besprechung ausfüllen)
 
--
+- **18.09. (Denis):** Baumechanik aus `Bauen V1` fällt weg, wird nicht portiert.
 
 ## To-dos
 

@@ -11,7 +11,7 @@ Gegenstück zu `MULTIPLAYER.md`:
 Wer neu dazukommt (oder nach Wochen zurückkommt) soll hier in fünf Minuten sehen:
 *Was gibt es schon? Was fehlt noch? Was muss später zusammengeführt werden?*
 
-- **Letzte Aktualisierung:** 2026-09-18
+- **Letzte Aktualisierung:** 2026-09-18 (Entscheidung: Bauen fällt weg; Idee KI-Besprechungsbot)
 
 ---
 
@@ -88,7 +88,7 @@ Das Wichtigste dieser Datei: Stellen, an denen zwei Mechaniken sich später tref
 
 | Von | Nach | Was passieren muss |
 |---|---|---|
-| **Kamera (Top-Down)** | **Bauen** | Der Zeigermodus liefert einen sichtbaren Mauszeiger und kamerarelative Bewegung — das Bauen selbst liegt noch in `Unity\Bauen V1` und ist nicht portiert. Der Zeiger hat aktuell **nichts zum Anklicken**. |
+| **Kamera (Top-Down)** | ~~**Bauen**~~ | **Entschieden 18.09. (Denis): Bauen fällt weg**, wird nicht aus `Unity\Bauen V1` portiert. Der Zeigermodus liefert weiterhin einen sichtbaren Mauszeiger und kamerarelative Bewegung, hat damit aber auf absehbare Zeit **nichts zum Anklicken** — offen, ob der Zeigermodus einen neuen Zweck bekommt oder bleibt, wie er ist. |
 | **Kamera (Hinweis)** | **"Nimm mich mit"** | `UPlayerHintComponent::ShouldShow(Thema)` wird heute von einem Zähler beantwortet. Sobald das Tagebuch (Schicht A) existiert, beantwortet es dieselbe Funktion — **eine Funktion umstellen**, sonst nichts. Siehe `NimmMichMit_Konzept.md`, "Erster Anwendungsfall". |
 | **Lean Shop** | **alles Käufliche** | Der Shop ist von Anfang an als **Liste** von Angeboten gebaut. Neue Ware = ein neues Data Asset, kein Code. Der Kamera-Roboter ist das erste Angebot. |
 | **Freischaltungen** | **Speichern (Welt)** | `UUnlockComponent` hält, was der Spieler besitzt. Ein Kauf ist nach dem Neustart weg — und das bleibt vorerst **mit Absicht so**: bezahlt wird aus den Lagern, und die Lagerbestände speichert niemand. Käme der Kauf ins Spieler-Profil, hätte man nach einem Neustart das Material **und** die Ware. Der Kauf gehört deshalb ins Weltspeichern, zusammen mit den Beständen. |
@@ -111,7 +111,7 @@ Dinge, auf die mehrere Mechaniken warten. Reihenfolge ist bewusst keine gesetzt.
 | **Speichersystem** | Freischaltungen, Lieblingssichten, Hinweis-Zähler, "Nimm mich mit" (Schicht A), Spielstand allgemein | Hängt an der Spieler-Identität → hängt an D1 und am Multiplayer. Deshalb **nicht** als Einzelspieler-Lösung vorbauen. |
 | **Optionsmenü** | Gebäudeschilder ein/aus, später Tastenbelegung, Empfindlichkeiten | Gibt es noch gar nicht. |
 | ~~**Kampfsystem**~~ | — | **Nicht mehr offen.** Konzept und Fundament stehen: `Unreal\NPCs\plan-rohstoff-raid-unreal.md`. Gebaut sind Lebenspunkte, Seiten und **eine** Schadensfunktion. Offen bleiben Spielerwaffe und Geschütz — beides steckt im selben Plan. |
-| **Bauen in Unreal** | Kamera-Zeigermodus, Top-Down-Übersicht | Liegt als `Bauen V1` in Unity, nicht portiert. |
+| ~~**Bauen in Unreal**~~ | — | **Nicht mehr offen.** Entschieden 18.09. (Denis): fällt weg, wird nicht portiert. Der Kamera-Zeigermodus wartet damit auf nichts mehr, hat aber sein Ziel verloren — siehe Querverbindungen. |
 | **Netzwerk** | alles mit Zustand | Eigene Datei: `MULTIPLAYER.md`. |
 
 ---
@@ -119,6 +119,23 @@ Dinge, auf die mehrere Mechaniken warten. Reihenfolge ist bewusst keine gesetzt.
 ## 5. Laufende Liste — was wann dazukam
 
 *(Neueste oben. Format: Datum — Mechanik — was offen bleibt)*
+
+### 2026-09-18 — Entscheidung: Baumechanik fällt weg; Idee KI-Besprechungsbot
+
+**Entschieden (Denis):** Die Baumechanik aus `Unity\Bauen V1 Stein an Stein`
+wird **nicht** nach Unreal portiert, sie fällt weg. Betrifft zwei Stellen oben:
+das Fundament "Bauen in Unreal" (Abschnitt 4) ist damit erledigt statt offen,
+und die Querverbindung "Kamera (Top-Down) → Bauen" (Abschnitt 3) verliert ihr
+Ziel — der Zeigermodus hat weiterhin nichts zum Anklicken, aber jetzt auf
+absehbare Zeit, nicht nur vorübergehend. **Neu offen:** bekommt der
+Zeigermodus einen anderen Zweck, oder bleibt er wie er ist?
+
+**Neue Idee: KI-Bot für Besprechungen.** Ein Bot ist bei den
+Discord-Besprechungen mit dem Kumpel dabei, zeichnet auf, fasst danach
+zusammen und pflegt die Besprechungsdatei(en) selbst — trägt Geklärtes ein,
+hält neue Punkte fest, legt bei Bedarf neue Dateien für entstehende Ideen an.
+Noch nicht entschieden, wie technisch umgesetzt. Ausführlich in
+`2026-09-07_Projekt-zusammenfuehren.md`, Abschnitt 9.
 
 ### 2026-09-18 — Lernordner pro Person, Besprechungsnotiz auf Unreal umgeschrieben
 
