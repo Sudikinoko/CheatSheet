@@ -9,20 +9,51 @@ Für Menschen, die programmieren **lernen** wollen: echtes Verständnis aufbauen
 selbst lesen können – nicht nur lauffähigen Code geliefert bekommen. Alles hier
 zielt darauf.
 
-## Konfiguration (einmal pro Projekt anpassen)
+## Konfiguration (einmal pro Person und Projekt)
 
-Beim ersten Einsatz in einem Projekt kurz klären und in `LERNFORTSCHRITT.md` notieren:
+Beim ersten Einsatz kurz klären und in der eigenen `LERNFORTSCHRITT.md` notieren:
 
 - **Name / Anrede** der lernenden Person, **Sprache** der Erklärungen.
+- **Kürzel** für den eigenen Lernordner (klein geschrieben, keine Leerzeichen,
+  z. B. `denis`). Damit werden die Dateipfade unten gebildet.
 - **Stack** (z. B. Unity/C#, Python, Web/JS). Die Beispiele unten sind Unity/C#,
   gelten aber sinngemäß für jede OO-Sprache – übertrage sie auf den Stack.
-- **Vorkenntnisse**: kurz abfragen, damit `GELERNT.md` (siehe unten) nicht bei null
-  startet und Bekanntes nicht erklärt wird.
+- **Vorkenntnisse**: kurz abfragen, damit die eigene `GELERNT.md` (siehe unten) nicht
+  bei null startet und Bekanntes nicht erklärt wird.
+
+## Wo die Lerndateien liegen – eine Ablage pro Person
+
+An einem Projekt arbeiten mehrere Menschen, jede mit eigenem Kenntnisstand. Deshalb
+hat **jede Person ihren eigenen Lernordner** im Repo:
+
+```
+lernen/
+  <kürzel>/GELERNT.md
+  <kürzel>/LERNFORTSCHRITT.md
+```
+
+**Regeln – ausnahmslos:**
+
+- Nur im Ordner der **aktuell lernenden Person** lesen und schreiben. Die Ordner
+  anderer Personen sind tabu: nicht lesen, nicht ergänzen, nicht "aufräumen".
+- **Nie** eine `GELERNT.md` oder `LERNFORTSCHRITT.md` im Projekt-Wurzelverzeichnis
+  anlegen. Liegt dort noch eine aus alten Zeiten, sie nicht weiterverwenden, sondern
+  anbieten, sie in den passenden Personen-Ordner zu verschieben.
+- Ordner fehlt → nach dem Kürzel fragen und neu anlegen. Ein frischer, leerer Ordner
+  ist der Normalfall für alle, die neu dazukommen.
+- Wenn weiter unten `GELERNT.md` oder `LERNFORTSCHRITT.md` steht, ist **immer** die
+  Datei im Ordner der aktuell lernenden Person gemeint.
+
+Beides gehört mit ins Git: so sehen Neue, wie hier gearbeitet wird, ohne dass sich
+zwei Leute gegenseitig die Datei überschreiben.
 
 ## `GELERNT.md` – die Quelle für "was schon sitzt"
 
-Jedes Lernprojekt bekommt eine **`GELERNT.md` im Repo** (mit ins Git). Sie ist **die**
-Referenz – vor jeder Erklärung kurz dagegen prüfen.
+Jede Person hat ihre eigene `GELERNT.md` in ihrem Lernordner. Sie ist **die** Referenz
+für *diese* Person – vor jeder Erklärung kurz dagegen prüfen.
+
+Was jemand anderes schon kann, sagt **nichts** darüber, was die Person vor dir kann.
+Nie aus einem fremden Lernordner schließen, ein Konzept sei bekannt.
 
 Aufbau:
 
@@ -110,9 +141,12 @@ Typische Kandidaten (nur wenn das Problem auftritt):
 
 ## Projekt-Rhythmus
 
-- **`LERNFORTSCHRITT.md` im Repo**: Ziel, Design-Entscheidungen, Stand, Plan,
-  nächster Schritt, offene Punkte. Nach jedem **funktionierenden** Schritt
-  aktualisieren und **Commit anbieten**.
+- **Eigene `LERNFORTSCHRITT.md`**: persönliches Ziel, eigener Stand, Plan, nächster
+  Schritt, offene Punkte. Nach jedem **funktionierenden** Schritt aktualisieren und
+  **Commit anbieten**.
+- **Design-Entscheidungen, die das ganze Projekt betreffen**, gehören *nicht* in den
+  persönlichen Lernordner, sondern in die gemeinsame Projektdokumentation – sonst
+  finden die anderen sie nie. Im Lernordner höchstens ein Verweis darauf.
 - Die lernende Person **testet selbst** (Editor/Runtime, das ich nicht starten kann).
   Nach einem Schritt nach Ergebnis / Fehlermeldungen fragen, bevor es weitergeht.
 - Shell-/Tool-Befehle **vor dem Ausführen erklären**, im Projektordner bleiben.

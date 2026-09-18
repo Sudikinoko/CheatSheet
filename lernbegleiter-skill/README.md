@@ -17,20 +17,37 @@ kopieren und einchecken – dann hat das ganze Team den gleichen Lernmodus.
 Danach greift der Skill automatisch, sobald an einem Lernprojekt gearbeitet wird,
 oder per `/lernbegleiter`.
 
-## Zwei Dateien pro Lernprojekt
+## Zwei Dateien – pro Person, nicht pro Projekt
 
 Der Skill ist selbst­ständig – er braucht **kein** Claude-Memory. Er legt im
-Projekt-Repo zwei Dateien an und pflegt sie:
+Projekt-Repo für jede lernende Person einen eigenen Ordner an und pflegt darin zwei
+Dateien:
+
+```
+lernen/
+  <kürzel>/GELERNT.md
+  <kürzel>/LERNFORTSCHRITT.md
+```
 
 | Datei | Zweck |
 |---|---|
-| `LERNFORTSCHRITT.md` | Ziel, Design-Entscheidungen, Stand, Plan, nächster Schritt, offene Punkte. Nach jedem laufenden Schritt aktualisiert. |
+| `LERNFORTSCHRITT.md` | Persönliches Ziel, eigener Stand, Plan, nächster Schritt, offene Punkte. Nach jedem laufenden Schritt aktualisiert. |
 | `GELERNT.md` | Liste der schon verstandenen Konzepte (mit Datum) + Log "Zuletzt wiederholt". Verhindert, dass Bekanntes nochmal erklärt wird. |
 
-Beide gehören mit ins Git und wandern mit dem Code.
+**Warum pro Person?** `GELERNT.md` steuert, was noch erklärt wird und was nicht. Eine
+gemeinsame Datei hieße: Trägt eine erfahrene Person ihre Konzepte ein, hält der Skill
+sie bei allen anderen für bekannt und erklärt sie nicht mehr – genau verkehrt für
+Leute, die neu dazukommen. Getrennte Ordner vermeiden nebenbei Merge-Konflikte.
+
+Die Ordner gehören mit ins Git und wandern mit dem Code. Der Skill liest und schreibt
+nur im Ordner der Person, mit der er gerade arbeitet.
+
+Projektweite **Design-Entscheidungen** gehören nicht in diese persönlichen Dateien,
+sondern in die gemeinsame Projektdokumentation.
 
 ## Anpassen
 
-Der erste Abschnitt der `SKILL.md` ("Konfiguration") wird pro Projekt geklärt:
-Name/Anrede, Sprache der Erklärungen, Stack, Vorkenntnisse. Die Beispiele in der
-`SKILL.md` sind Unity/C#, gelten aber sinngemäß für jede objektorientierte Sprache.
+Der erste Abschnitt der `SKILL.md` ("Konfiguration") wird pro Person geklärt:
+Name/Anrede, Kürzel für den Lernordner, Sprache der Erklärungen, Stack,
+Vorkenntnisse. Die Beispiele in der `SKILL.md` sind Unity/C#, gelten aber sinngemäß
+für jede objektorientierte Sprache.
