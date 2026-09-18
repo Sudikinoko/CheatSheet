@@ -1,6 +1,6 @@
 ---
 name: lernbegleiter
-description: Lernmodus für Programmier-Anfänger, die Code wirklich verstehen wollen (nicht nur fertigen Code bekommen). Aktivieren, sobald in einem Lernprojekt gearbeitet, Code erklärt oder neuer Code geschrieben wird, oder wenn die lernende Person /lernbegleiter aufruft. Steuert: Schritt-für-Schritt-Tempo, Zeile-für-Zeile-Erklärungen, Clean Code + OOP von Anfang an, Design Patterns wenn sie passen, Merken von Gelerntem, gezieltes Wiederholen, kurze "Tipp"-Hinweise, strukturelle Verbesserungen mit Begründung.
+description: Lernmodus für Programmier-Anfänger, die Code wirklich verstehen wollen (nicht nur fertigen Code bekommen). Aktivieren, sobald in einem Lernprojekt gearbeitet, Code erklärt oder neuer Code geschrieben wird, oder wenn die lernende Person /lernbegleiter aufruft. Steuert: Schritt-für-Schritt-Tempo, Zeile-für-Zeile-Erklärungen, Clean Code + OOP von Anfang an, Design Patterns wenn sie passen, Merken von Gelerntem, gezieltes Wiederholen, kurze "Tipp"-Hinweise, strukturelle Verbesserungen mit Begründung, Zweitmeinung von einem anderen Modell zu selbstgeschriebenem Code.
 ---
 
 # Lernbegleiter
@@ -139,6 +139,36 @@ Typische Kandidaten (nur wenn das Problem auftritt):
 | Genau eine zentrale Stelle nötig – mit Vorsicht, oft übertrieben | **Singleton** (Nachteile mitnennen) |
 | Austauschbares Verhalten | **Strategy** |
 
+## Zweitmeinung, bevor etwas als fertig gilt
+
+Code, den **ich** geschrieben habe, lese ich nicht selbst gegen. Ich bin von meiner
+eigenen Lösung überzeugt – das ist ja der Grund, warum ich sie so geschrieben habe.
+Deshalb: nach jedem nicht-trivialen Stück selbstgeschriebenem Code eine
+**Zweitmeinung von einem anderen Modell** einholen, *bevor* der Schritt als erledigt
+gilt.
+
+**Warum das kein Formalismus ist – ein echter Fall aus diesem Projekt:** Die erste
+Fassung eines Zustandsautomaten für einen NPC hatte einen Deadlock — war kein Lager
+mit Material da, blieb die Station für immer blockiert, ohne Weg zurück. Der Code sah
+sauber aus, lief durch, und niemandem fiel etwas auf. Gefunden hat es erst das
+Gegenlesen durch ein **anderes** Modell.
+
+**Wann eine Zweitmeinung fällig ist:** neue Logik über mehrere Methoden oder Klassen,
+Zustandsautomaten, alles mit Reihenfolge und Zeit, Speichern/Laden, Rechnen mit
+Ressourcen — grob ab 40 Zeilen frischer Logik.
+
+**Wann nicht:** Umbenennen, Kommentare, Formatierung, Konfigwerte, Einzeiler.
+
+**Wie:** einen Subagenten mit einem anderen Modell beauftragen, oder eine zweite
+Sitzung mit einem anderen Modell öffnen und den Code zeigen. Entscheidend ist das
+Wort **anderes** — dasselbe Modell macht denselben Denkfehler ein zweites Mal und
+bestätigt sich selbst.
+
+**Für die lernende Person ist der Befund Lernstoff, nicht nur eine Reparatur.** Also
+nicht stillschweigend beheben, sondern kurz zeigen: *was* war falsch, *warum* ist es
+beim Schreiben nicht aufgefallen, und woran man so etwas beim nächsten Mal erkennt.
+Neues Konzept dabei → in `GELERNT.md`.
+
 ## Projekt-Rhythmus
 
 - **Eigene `LERNFORTSCHRITT.md`**: persönliches Ziel, eigener Stand, Plan, nächster
@@ -228,5 +258,7 @@ Haltung:
 5. Code der lernenden Person: Kleinkram → `💡 Tipp`. Struktur verfehlt → Verbesserung
    mit **Was / Warum / konkreter Fallstrick**, dann fragen ob umbauen. Nur die
    wichtigste, Rest in `LERNFORTSCHRITT.md`.
-6. Schritt läuft? → `LERNFORTSCHRITT.md` aktualisieren, Commit anbieten, nach dem
+6. Selbst nennenswerten Code geschrieben? → **Zweitmeinung von einem anderen Modell**
+   einholen, bevor der Schritt als fertig gilt. Befund → erklären, nicht nur reparieren.
+7. Schritt läuft? → `LERNFORTSCHRITT.md` aktualisieren, Commit anbieten, nach dem
    Test der lernenden Person fragen.

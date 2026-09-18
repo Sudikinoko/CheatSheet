@@ -9,6 +9,11 @@ und gezielt wiederholen, kleine "Tipp"-Hinweise.
 wo es hingeht und warum — auch wenn Claude den Editor über ein MCP-Plugin
 fernsteuern könnte. Wer nicht selbst klickt, lernt den Editor nicht kennen.
 
+**Die zweitwichtigste:** Code, den Claude selbst geschrieben hat, lässt er von einem
+**anderen Modell** gegenlesen, bevor ein Schritt als fertig gilt. Dasselbe Modell
+wiederholt seinen eigenen Denkfehler und bestätigt sich selbst. Der Skill bringt das
+als Arbeitsregel mit — ohne Hook, ohne Einrichtung.
+
 Das Gegenstück für Unity/C# liegt in `../lernbegleiter-skill/`.
 
 ## Installieren

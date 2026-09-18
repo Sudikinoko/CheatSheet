@@ -6,6 +6,11 @@ Anfang an, Design Patterns nur wenn sie zum Problem passen, Gelerntes merken und
 gezielt wiederholen, kleine "Tipp"-Hinweise und strukturelle Verbesserungen mit
 Begründung.
 
+**Eine Regel darin ist wichtiger als der Rest:** Code, den Claude selbst geschrieben
+hat, lässt er von einem **anderen Modell** gegenlesen, bevor ein Schritt als fertig
+gilt. Dasselbe Modell wiederholt seinen eigenen Denkfehler und bestätigt sich selbst.
+Der Skill bringt das als Arbeitsregel mit — ohne Hook, ohne Einrichtung.
+
 ## Installieren
 
 **Pro Person (global):** Ordner nach `~/.claude/skills/lernbegleiter/` kopieren
