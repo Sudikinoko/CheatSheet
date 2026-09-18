@@ -11,7 +11,7 @@ Gegenstück zu `MULTIPLAYER.md`:
 Wer neu dazukommt (oder nach Wochen zurückkommt) soll hier in fünf Minuten sehen:
 *Was gibt es schon? Was fehlt noch? Was muss später zusammengeführt werden?*
 
-- **Letzte Aktualisierung:** 2026-09-17
+- **Letzte Aktualisierung:** 2026-09-18
 
 ---
 
@@ -119,6 +119,35 @@ Dinge, auf die mehrere Mechaniken warten. Reihenfolge ist bewusst keine gesetzt.
 ## 5. Laufende Liste — was wann dazukam
 
 *(Neueste oben. Format: Datum — Mechanik — was offen bleibt)*
+
+### 2026-09-18 — Lernordner pro Person, Besprechungsnotiz auf Unreal umgeschrieben
+
+**Lerndateien liegen ab jetzt pro Person getrennt:** `lernen/<kürzel>/` mit
+`LERNFORTSCHRITT.md` (+ `GELERNT.md`), nicht mehr im Wurzelverzeichnis. Denis' Kürzel
+ist `pfeifi`. Grund: `GELERNT.md` steuert, was noch erklärt wird — eine gemeinsame
+Datei hieße, dass der Stand einer erfahrenen Person bei allen anderen die
+Erklärungen unterdrückt. Genau verkehrt für Leute, die neu dazukommen. Nebenbei
+vermeidet es Merge-Konflikte. Die drei vorhandenen Unity-Dateien wurden verschoben.
+
+**Die Besprechungsnotiz `2026-09-07_Projekt-zusammenfuehren.md` ist von Unity auf
+Unreal umgeschrieben.** Sie war noch auf dem Stand vor dem Engine-Wechsel. Offene
+Fragen blieben offen, sie sind nur jetzt als Unreal-Fragen formuliert; neu
+entschieden wurde nichts.
+
+**Ebenfalls am 18.09. entstanden:** eine Unreal-Fassung des Lernbegleiters in
+`CheatSheet/lernbegleiter-unreal-skill/`. Die ältere Fassung
+(`CheatSheet/lernbegleiter-skill/`) kennt nur Unity/C#. Für das gemeinsame Spiel ist
+die Unreal-Fassung die relevante.
+
+**Offen — sobald das gemeinsame Repo steht:**
+- Den Unreal-Lernbegleiter nach `<repo>/.claude/skills/lernbegleiter-unreal/`
+  kopieren.
+- Denis' `GELERNT.md` einmalig aus dem KI-Memory befüllen; führend für „was kann
+  Denis" bleibt das Memory.
+
+**Offen — für die Besprechung:** Wird `Unreal\NPCs` die Basis, oder frisch
+aufsetzen? Wie wird aus dem privaten Repo (Corer91) ein gemeinsames? Git LFS und
+File Locking, weil `.uasset`/`.umap` binär und nicht mergebar sind.
 
 ### 2026-09-17 — Startprüfung, und warum der Angreifer am Erz klebte
 

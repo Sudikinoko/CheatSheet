@@ -1,142 +1,169 @@
 # Besprechung: Mechaniken zu einem Spiel zusammenführen
 
-**Datum:** 2026-09-07
+**Ursprünglich:** 2026-09-07 (Unity-Stand)
+**Auf Unreal umgeschrieben:** 2026-09-18 — nach dem Engine-Wechsel zu UE5.
 **Teilnehmer:** Denis, [Kumpel]
-**Anlass:** Denis baut Mechaniken einzeln (je eigenes Unity-Projekt). Bevor es mehr
-werden: klären, wie daraus *ein* Spiel wird und wie wir zusammenarbeiten.
+**Anlass:** Denis baut Mechaniken einzeln. Bevor es mehr werden: klären, wie daraus
+*ein* Spiel wird und wie wir zusammenarbeiten.
+
+> **Hinweis zum Umschreiben:** Die Struktur-Empfehlungen sind von Unity nach Unreal
+> übersetzt. Was am 7.9. offen war, ist weiterhin offen — jetzt eben als
+> Unreal-Frage. Es wurde nichts neu entschieden.
 
 ---
 
 ## ⭐ Die wichtigsten Punkte (Kurzfassung)
 
-1. **Ein Unity-Projekt statt vieler.** Mechaniken als Ordner + eigene Test-Szenen,
-   ein `_Core` für Geteiltes, eine Integration-Szene. Getrennte Projekte = später
-   Merge-Hölle.
-2. **`_Core` zuerst festlegen — wer besitzt Player/Kamera/Input?** Für Multiplayer
-   muss der Player evtl. ein Netzwerk-Objekt sein. Kumpel gibt die Player-Architektur
-   vor, *bevor* Denis einen Wegwerf-Player baut.
-3. **Multiplayer betrifft die Mechaniken direkt.** NPC-/Job-/Lager-Zustand muss
-   synchronisiert werden. Welche Netcode-Lösung? Wer ist Autorität (Server)?
-4. **Gemeinsames Git-Repo + Regeln.** Branch pro Person, gleiche Unity-Version,
-   nicht beide gleichzeitig an derselben Szene, `.gitignore` + Meta-Dateien sauber.
-5. **Gleiche Render-Pipeline + gleiches Input-System in allen Projekten.** Sonst
-   pinke Materialien und kaputter Input beim Zusammenführen.
-6. **Reihenfolge:** Denis macht erst die NPC-Mechanik fertig, *dann* wird
+1. **Ein Unreal-Projekt statt vieler.** Mechaniken als Ordner unter `Source/NPCs/`
+   + eigene Test-Level, ein gemeinsamer Kern für Geteiltes, ein Integration-Level.
+   **Das ist bereits so umgesetzt** — siehe Abschnitt 1.
+2. **Kern zuerst festlegen — wer besitzt Character/Kamera/Input?** Für Multiplayer
+   muss der Character ein replizierter Actor sein. Kumpel gibt die Character-
+   Architektur vor, *bevor* Denis darauf aufbaut. Aktuell steht alles auf dem
+   **First-Person-Template**.
+3. **Multiplayer betrifft die Mechaniken direkt.** Crafting-/Lager-Zustand muss
+   repliziert werden. Unreal bringt Netzwerk-Replikation eingebaut mit (server-
+   autoritativ) — die Frage ist weniger *welche Lösung*, sondern *wer ist Autorität*
+   und *was wird repliziert*.
+4. **Gemeinsames Git-Repo + Regeln.** Branch pro Person, exakt gleiche Engine-Version,
+   nicht beide gleichzeitig am selben Level/Blueprint, LFS für Binärdateien.
+5. **Gleiche Engine-Version und gleiche Plugins in allen Projekten.**
+6. **Reihenfolge:** Denis macht erst die aktuelle Mechanik fertig, *dann* wird
    konsolidiert — nicht vorher, nicht nebenbei.
-7. **Neue Idee "Nimm mich mit":** Guide-NPC, der beim Spielstart den aktuellen
-   Stand erklärt (Wiedereinstieg nach Pause). Hängt am Speichersystem + Spieler-
-   Identität → nicht als eigenes Projekt bauen, sondern im gemeinsamen Projekt.
-   Details in `Workspaces/Konzepte/NimmMichMit_Konzept.md`.
+7. **Idee "Nimm mich mit":** Guide-NPC, der beim Spielstart den aktuellen Stand
+   erklärt. Hängt am Speichersystem + Spieler-Identität → im gemeinsamen Projekt
+   bauen. Konzept: `Workspaces/Konzepte/NimmMichMit_Konzept.md`.
 
 ---
 
-## 1. Projektstruktur
+## 1. Projektstruktur — Stand: weitgehend schon da
 
-**Empfehlung:** ein Projekt, so aufgebaut:
+`Workspaces\Unreal\NPCs` (UE **5.8**, C++-Modul `NPCs`) enthält bereits mehrere
+Mechaniken nebeneinander:
 
 ```
-MeinSpiel/
-  Assets/
-    _Core/          EINMAL: Player, Kamera, Input, gemeinsame ScriptableObject-Typen, Tags/Layers
-    Crafting/       NPC-Arbeitsmechanik (Scripts + Prefabs)
-    Bauen/          Baumechanik (aus "Bauen V1")
-    ...
-    Scenes/
-      Test_Crafting.unity     isoliertes Testen dieser Mechanik
-      Test_Bauen.unity
-      Integration.unity       alles zusammen -> "funktioniert das große Ganze?"
+NPCs/
+  Source/NPCs/
+    Crafting/         NPC-Arbeitsmechanik (aus Unity portiert)
+    Kamera/           Perspektivwechsel Ego/Third/TopDown
+    Kampf/            Health etc.
+    Rohstoffe/        Rohstoff-Raid
+    Shop/             Lean Shop
+    Hinweise/         Spieler-Hinweise
+    Profil/
+    Variant_Horror/   Reste des Templates
+    Variant_Shooter/  Reste des Templates
+  Content/
+    FirstPerson/Lvl_FirstPerson.umap
+    Wiese/Lvl_Wiese.umap
 ```
 
-**Warum nicht mehrere Projekte:**
-- GUID-/Referenzbruch beim Zusammenkopieren (Prefabs zeigen ins Leere, Materialien pink)
-- Doppeltes Fundament driftet auseinander (schon passiert: `PlayerController` von
-  "Bauen V1" liegt jetzt auch im NPC-Projekt)
-- Projekt-Settings (Input, Pipeline, Layer, Physik) überall minimal anders
-- "Alles zusammen testen" geht nur in *einem* Projekt
+**Damit ist die Kernfrage vom 7.9. ("ein Projekt oder viele?") faktisch beantwortet:
+ein Projekt, Mechaniken als Ordner.** Was in Unity noch bevorstand, ist in Unreal
+schon passiert.
 
 **Offen für die Besprechung:**
-- Nehmen wir eins von Denis' bestehenden Projekten als Basis oder frisch aufsetzen?
-- Später mal Mechaniken als lokale UPM-Packages? (jetzt Overkill)
+- **Wird `Unreal\NPCs` die Basis des gemeinsamen Spiels, oder frisch aufsetzen?**
+  Dagegen spricht: Der Projektname passt nicht mehr (es ist längst mehr als NPCs),
+  und die Template-Reste (`Variant_Horror`, `Variant_Shooter`) liegen noch drin.
+  Dafür spricht: Es läuft, und alles neu aufzusetzen kostet Zeit ohne Gegenwert.
+- **Gemeinsamer Kern-Ordner** (`Source/NPCs/Core/`) für Character, Kamera, Input,
+  geteilte DataAssets und GameplayTags — gibt es noch nicht, alles hängt am Template.
+- Später Mechaniken als **Plugins** auslagern? (jetzt Overkill)
+- Projekt/Modul umbenennen, Template-Reste rauswerfen — ja oder nein?
 
-## 2. `_Core` — Besitz und Verantwortung
+## 2. Der gemeinsame Kern — Besitz und Verantwortung
 
-- **Player:** Bewegung, Kamera, Interaktion. Für Multiplayer ggf. ganz anders
-  (Netzwerk-Objekt, Client-Authority vs. Server). → **Kumpel gibt Struktur vor.**
-- **Input:** ein gemeinsames Input-Actions-Asset in `_Core`. Alle Projekte stehen
-  auf "Input System Package (New)".
-- **Gemeinsame Daten-Typen:** z. B. `MaterialType`, Ressourcen, Item-Definitionen —
-  gehören in `_Core`, damit Crafting und Bauen dieselben benutzen.
-- **Tags/Layers:** früh gemeinsam festlegen (z. B. `Player`, `Interactable`).
+- **Character:** Bewegung, Kamera, Interaktion. Für Multiplayer ggf. ganz anders
+  (repliziert, Server- vs. Client-Autorität). → **Kumpel gibt Struktur vor.**
+  Aktuell: First-Person-Template-Character.
+- **Input:** ein gemeinsames **Enhanced Input**-Setup (Input Mapping Context +
+  Input Actions) im Kern, nicht pro Mechanik.
+- **Gemeinsame Daten-Typen:** Material, Rezept, Item — als **DataAsset** im Kern,
+  damit Crafting, Shop und Rohstoffe dieselben benutzen.
+- **GameplayTags statt Tag-Strings** früh gemeinsam festlegen.
 
 ## 3. Multiplayer-Auswirkungen (Input vom Kumpel nötig)
 
-- **Welche Netcode-Lösung?** (Netcode for GameObjects / Mirror / FishNet / Photon …)
-- **Autorität:** Wer besitzt den NPC-/Job-Zustand? Vermutlich der Server.
-- **Zu synchronisieren bei der NPC-Mechanik:**
-  - `CraftingJob`-Status (Phase, Fortschritt, Restzeit) — steht im Plan schon als
-    offener Punkt
-  - Lager-Bestände (shared state, mehrere Spieler greifen zu)
-  - NPC-Position/Pfad (oder nur Ziel synchronisieren, Rest lokal?)
+- **Unreal bringt Replikation mit.** Kein Mirror/FishNet/Photon nötig wie in Unity.
+  Offen bleibt trotzdem: Dedicated Server oder Listen Server?
+- **Autorität:** Wer besitzt den Crafting-/Job-Zustand? Vermutlich der Server.
+- **Zu replizieren bei der Crafting-Mechanik:**
+  - Job-Status (Phase, Fortschritt, Restzeit)
+  - Lager-Bestände (mehrere Spieler greifen zu)
+  - NPC-Position/Pfad (oder nur Ziel replizieren, Bewegung lokal?)
 - **Konsequenz für Denis:** Mechaniken so bauen, dass die Zustandsänderung an *einer*
-  klaren Stelle passiert (macht der Code aktuell schon: nur `NpcCraftWorker` schreibt
-  den Job-Status).
+  klaren Stelle passiert — dann ist "nur der Server darf das" später eine kleine
+  Änderung statt eines Umbaus.
 
 ## 4. Zusammenarbeit / Git
 
 - **Ein gemeinsames Repo fürs Spiel** (getrennt vom CheatSheet).
-- **Branch-Strategie:** `main` stabil, jede*r arbeitet auf `feature/...`-Branches,
-  Merge über Pull Requests oder abgesprochen.
-- **Gleiche Unity-Version exakt:** aktuell `6000.3.22f1`. Version-Wechsel nur gemeinsam.
-- **`.gitignore` für Unity:** `Library/`, `Temp/`, `Logs/`, `obj/` raus; `Assets/`,
-  `ProjectSettings/`, `Packages/` rein.
-- **Meta-Dateien immer mitcommitten.** Sonst brechen Referenzen beim anderen.
-- **Szenen & Prefabs sind YAML → schlecht mergebar.** Regel: nicht beide gleichzeitig
-  an derselben Szene/Prefab. Optional "Smart Merge" (UnityYAMLMerge) in Git einrichten.
-- **Wie tauschen wir aus?** Vermutlich über GitHub (wie beim CheatSheet).
+  **Offen:** Das Unreal-Projekt liegt aktuell unter
+  `github.com/Corer91/NPCs_Arbeitsmechanik_Unreal` — Denis' privatem Konto. Wie wird
+  daraus ein gemeinsames Repo? (Kollaborateur einladen / Organisation / neues Repo)
+- **Branch-Strategie:** `main` stabil, jede Person auf `feature/...`, Merge abgesprochen.
+- **Engine-Version exakt gleich:** aktuell **5.8**. Wechsel nur gemeinsam.
+- **`.gitignore`:** `Binaries/`, `Intermediate/`, `Saved/`, `DerivedDataCache/` raus;
+  `Source/`, `Content/`, `Config/`, `.uproject` rein.
+- **`.uasset` und `.umap` sind Binärdateien** — Git kann sie **nicht** mergen.
+  Schlimmer als Unitys YAML-Szenen: Bearbeiten zwei Leute dasselbe Blueprint,
+  gewinnt genau einer, der andere verliert seine Arbeit.
+  → **Regel: nie gleichzeitig am selben Blueprint/Level.**
+  → **Offen:** Git LFS einrichten? (`.gitattributes` liegt schon vor, LFS aber noch
+  nicht aktiv.) Und: File Locking über die Source-Control-Anbindung im Editor nutzen?
+- **Logik nach C++, Verdrahtung nach Blueprint.** Was in C++ steht, ist mergebar;
+  was im Blueprint steckt, nicht. Das ist hier kein Stil-, sondern ein Teamthema.
 
-## 5. Render Pipeline
+## 5. Rendering
 
-- Alle Projekte auf **dieselbe Pipeline** (prüfen: URP oder Built-in?).
-- Unterschiedliche Pipeline = pinke Materialien beim Zusammenführen, alles neu zuweisen.
+- Gleiche Engine-Version und gleiche Projekt-Settings genügen weitgehend; die
+  Unity-Falle "URP vs. Built-in → pinke Materialien" gibt es so nicht.
+- **Offen:** Lumen/Nanite an oder aus? Betrifft, wie Assets gebaut werden, und muss
+  bei beiden gleich sein.
 
-## 6. Prefab-Konventionen
+## 6. Blueprint-Konventionen
 
-- **Alles als Prefab.** Verdrahtung innerhalb Objekt + Kinder steckt im Prefab.
-- **Externe Szenen-Referenzen** (z. B. „welcher Player") nicht als serialisiertes
-  Feld, sondern per Tag-Lookup (`FindWithTag`) oder Locator/Service.
-- Namens- und Ordnerkonvention festlegen.
+- **Verdrahtung innerhalb eines Actors** gehört ins Blueprint.
+- **Referenzen auf andere Actors im Level** nicht hart verdrahten, sondern über
+  GameplayTags, `GetAllActorsWithTag` oder ein Subsystem holen.
+- Namens- und Ordnerkonvention für `Content/` festlegen — **offen**.
 
-## 7. Neue Mechanik-Idee: "Nimm mich mit"
+## 7. Mechanik-Idee: "Nimm mich mit"
 
-Guide-NPC, der den Spieler bei jedem Spielstart abholt und fragt, ob er den
-aktuellen Stand zeigen soll — Ziel: Hürde beim Wiedereinstieg nach längerer
-Pause wegnehmen. Erklärt gestaffelt nach Abwesenheitsdauer (kurz weg = knappe
-Erinnerung, lang weg = auch Grundmechaniken/Steuerung neu). Infos werden
-automatisch mitgeschrieben, Spieler kann eigene Ziele/Notizen ergänzen.
+Unverändert gültig (engine-unabhängig): Guide-NPC, der den Spieler bei jedem
+Spielstart abholt und den aktuellen Stand erklärt — Hürde beim Wiedereinstieg nach
+längerer Pause wegnehmen. Gestaffelt nach Abwesenheitsdauer.
 
-**Für die Besprechung relevant:**
-- Die Mechanik hat zwei Schichten: **A** ein "Tagebuch" (letzter Login,
-  Fortschritt, offene Ziele) und **B** der Guide + Dialog-UI.
-- Schicht A hängt fest am **Speichersystem** und an der **Spieler-Identität** —
-  im Multiplayer pro Spieler, vermutlich serverseitig. Ein getrenntes
-  Einzelspieler-Übungsprojekt würde ein lokales Speichern voraussetzen, das
-  später nicht passt.
-- **Vorschlag:** ganze Mechanik im gemeinsamen Projekt bauen, sobald Speichern
-  und Spieler-Identität dort stehen. Höchstens Schicht B (Dialog-UI) vorab
-  separat üben, mit Testdaten.
+- Zwei Schichten: **A** ein "Tagebuch" (letzter Login, Fortschritt, offene Ziele),
+  **B** der Guide + Dialog-UI.
+- Schicht A hängt am **Speichersystem** und an der **Spieler-Identität** — im
+  Multiplayer pro Spieler, vermutlich serverseitig.
+- **Vorschlag:** ganze Mechanik im gemeinsamen Projekt bauen, sobald Speichern und
+  Spieler-Identität stehen. Höchstens Schicht B (Dialog-UI) vorab üben.
 - Volles Konzept: `Workspaces/Konzepte/NimmMichMit_Konzept.md`
+
+## 8. Lernbegleiter im gemeinsamen Repo
+
+- Jede Person, die lernt, bekommt einen eigenen Ordner `lernen/<kürzel>/` mit
+  `LERNFORTSCHRITT.md` (+ `GELERNT.md`). Denis' Kürzel: `pfeifi`.
+- Ein Ordner entsteht erst, wenn jemand den Lernmodus tatsächlich benutzt — niemand
+  bekommt einen auf Vorrat.
+- Der Weitergabe-Skill kommt nach `<repo>/.claude/skills/`. Die Unreal-Fassung heißt
+  `lernbegleiter-unreal`, die Unity-Fassung liegt in `CheatSheet/lernbegleiter-skill/`.
 
 ---
 
 ## Stand von Denis' Mechaniken (Kontext für den Kumpel)
 
-- **NPCs_Arbeitsmechanik** (Unity 6000.3.22f1): generische Crafting-Mechanik.
-  Spieler beauftragt an einer Station ein Item → NPC holt Material aus Lagern
-  (NavMesh) → craftet über Zeit → Spieler holt ab. Datenmodell über ScriptableObjects
-  (Material, Rezept, Stationslevel), Zustandsautomat am NPC. Läuft im Editor.
-  Offen: 2 Weltraum-Anzeigen, Platzhalter-Animationen. Multiplayer bewusst noch nicht drin.
-- **Bauen V1 Stein an Stein**: Baumechanik + erster Player-Controller (First Person,
-  neues Input System).
+- **Unreal `NPCs` (UE 5.8)** — der aktive Stand. Crafting aus Unity portiert,
+  dazu Kamera-Perspektivwechsel, Kampf, Rohstoffe, Shop, Hinweise.
+  Multiplayer bewusst noch nicht drin.
+- **Unity `NPCs_Arbeitsmechanik`** — Vorlage der Crafting-Mechanik, läuft im Editor
+  (Milestones 1–6). Milestone 7 (sichtbares Feedback) offen. Wird durch die
+  Unreal-Portierung abgelöst.
+- **Unity `Bauen V1 Stein an Stein`** — Baumechanik + erster Player-Controller.
+  **Offen: Wird die Baumechanik nach Unreal portiert, oder fällt sie weg?**
 
 ---
 
